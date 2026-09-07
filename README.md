@@ -59,7 +59,15 @@ node scripts/build-dataset.mjs --lang=english --cc=us # язык описани�
 node scripts/build-dataset.mjs --rebuild              # только пересобрать games.json из кэша
 ```
 
-Чтобы пересобрать список игр заново, удали `scripts/cache/pool.json`.
+Чтобы пересобрать список игр заново (например, добавить страницы SteamSpy или больше случайных игр), удали `scripts/cache/pool.json` и запусти сборку с нужными ключами. Уже скачанные игры не запрашиваются повторно.
+
+В `games.json` стандартные адреса картинок Steam хранятся в коротком виде (обложка выводится из id игры, скриншоты по хэшу), полный адрес восстанавливает `src/lib/data.js`. Так 7 тысяч игр весят около 5 МБ, а с gzip на GitHub Pages примерно 1 МБ.
+
+Скрипт `scripts/watch-and-push.ps1` умеет следить за долгой сборкой и сам коммитить и пушить датасет: каждые +1000 игр и в конце. Запуск в фоне:
+
+```powershell
+Start-Process powershell -ArgumentList '-ExecutionPolicy Bypass -File scripts\watch-and-push.ps1' -WindowStyle Hidden
+```
 
 ## Структура
 

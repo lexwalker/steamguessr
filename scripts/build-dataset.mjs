@@ -46,7 +46,8 @@ fs.mkdirSync(path.dirname(OUT), { recursive: true });
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const log = (...a) => console.log(new Date().toISOString().slice(11, 19), ...a);
 const readJSON = (f) => (fs.existsSync(f) ? JSON.parse(fs.readFileSync(f, 'utf8')) : null);
-const writeJSON = (f, v) => fs.writeFileSync(f, JSON.stringify(v));
+// write via a temp file + rename so readers never see a half-written games.json
+const writeJSON = (f, v) => { fs.writeFileSync(f + '.tmp', JSON.stringify(v)); fs.renameSync(f + '.tmp', f); };
 
 async function getJSON(url, { retries = 3, backoff = 30000 } = {}) {
   for (let i = 0; ; i++) {
@@ -211,6 +212,24 @@ async function processApp({ id, tier }) {
   return 'ok';
 }
 
+// Standard CDN image URLs are replaced by short forms the site rebuilds from the app id
+// (src/lib/data.js); unusual URLs stay as they are.
+const HEADER_RE = /^https:\/\/shared\.(?:akamai|fastly)\.steamstatic\.com\/store_item_assets\/steam\/apps\/(\d+)\/header\.jpg(?:\?.*)?$/;
+const SHOT_RE = /^https:\/\/shared\.(?:akamai|fastly)\.steamstatic\.com\/store_item_assets\/steam\/apps\/(\d+)\/ss_([0-9a-f]+)\.600x338\.jpg(?:\?.*)?$/;
+
+function compact(g) {
+  const out = { ...g };
+  delete out.ccu;
+  delete out.movie;
+  const hm = HEADER_RE.exec(g.img || '');
+  if (hm && hm[1] === String(g.id)) delete out.img;
+  out.shots = (g.shots || []).map((s) => {
+    const m = SHOT_RE.exec(s);
+    return m && m[1] === String(g.id) ? m[2] : s;
+  });
+  return out;
+}
+
 function assemble() {
   const games = [];
   let skipped = 0;
@@ -218,7 +237,7 @@ function assemble() {
     if (!f.endsWith('.json')) continue;
     const g = readJSON(path.join(APPS, f));
     if (!g || g.skip) { skipped++; continue; }
-    games.push(g);
+    games.push(compact(g));
   }
   games.sort((a, b) => b.reviews - a.reviews);
   writeJSON(OUT, { version: new Date().toISOString().slice(0, 10), lang: LANG, count: games.length, games });
