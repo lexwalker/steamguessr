@@ -1,0 +1,73 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+  <style>
+    body { margin: 0; }
+    a { color: #b6432a; text-decoration: underline; } a:hover { color: #1c1a17; }
+  </style>
+</helmet>
+<div style="width: 1280px; min-height: 900px; box-sizing: border-box; display: flex; flex-direction: column; gap: 24px; padding: 32px 64px 48px; background: #f4efe6; color: #1c1a17; font-family: 'IBM Plex Sans', 'Segoe UI', Arial, sans-serif; font-size: 16px; line-height: 1.5;">
+
+  <div style="display: flex; align-items: baseline; justify-content: space-between; padding-bottom: 12px; border-bottom: 2px solid #1c1a17;">
+    <div style="font-family: 'Playfair Display', Georgia, serif; font-weight: 900; font-size: 22px; letter-spacing: 0.5px;">SteamGuessr</div>
+    <div style="display: flex; gap: 24px; font-size: 13px; text-transform: uppercase; letter-spacing: 2px; color: #6b655c;">
+      <span>Классика · Микс</span>
+      <span>Раунд 1 из 5</span>
+      <span>Очки 0</span>
+    </div>
+  </div>
+
+  <div style="display: grid; grid-template-columns: 5fr 6fr; gap: 40px; align-items: start;">
+    <div style="display: flex; flex-direction: column; gap: 10px;">
+      <img src="hades.jpg" alt="" style="width: 100%; aspect-ratio: 460 / 215; object-fit: cover; display: block; background: #000000;">
+      <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px;">
+        <img src="shot1.jpg" alt="" style="width: 100%; aspect-ratio: 16 / 9; object-fit: cover; display: block; background: #000000;">
+        <img src="shot2.jpg" alt="" style="width: 100%; aspect-ratio: 16 / 9; object-fit: cover; display: block; background: #000000;">
+        <img src="shot4.jpg" alt="" style="width: 100%; aspect-ratio: 16 / 9; object-fit: cover; display: block; background: #000000;">
+      </div>
+      <div style="font-size: 12px; color: #6b655c; font-style: italic;">Скриншоты со страницы магазина</div>
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: 16px;">
+      <div style="font-size: 12px; text-transform: uppercase; letter-spacing: 3px; color: #b6432a; font-weight: 600;">Игра № 1</div>
+      <div style="font-family: 'Playfair Display', Georgia, serif; font-weight: 700; font-size: 56px; line-height: 1.05;">Hades</div>
+      <div style="font-size: 17px; line-height: 1.55; max-width: 540px;">Бросьте вызов богу мёртвых и прорубите себе путь из Подземного мира в игре в жанрах «рогалик» и «данжен-кроулер» от создателей Bastion, Transistor и Pyre.</div>
+      <div style="display: grid; grid-template-columns: 150px 1fr; gap: 6px 16px; font-size: 14px; padding-top: 12px; border-top: 1px solid #d8d0c2;">
+        <span style="color: #6b655c;">Теги</span><span>Action Roguelike, Rogue-lite, Hack and Slash, Indie, Mythology</span>
+        <span style="color: #6b655c;">Дата и цена</span><span style="color: #b6432a;">открыть за −750</span>
+        <span style="color: #6b655c;">Пресса</span><span style="color: #b6432a;">открыть за −1 000</span>
+      </div>
+    </div>
+  </div>
+
+  <div style="display: flex; flex-direction: column; gap: 14px; padding: 28px 32px; border: 2px dashed #1c1a17; background: #fbf8f2;">
+    <div style="display: flex; align-items: baseline; justify-content: space-between;">
+      <div style="display: flex; align-items: baseline; gap: 12px;">
+        <span style="font-family: 'Playfair Display', Georgia, serif; font-weight: 900; font-size: 64px; line-height: 1; color: #1c1a17;">49 000</span>
+        <span style="font-size: 18px; color: #6b655c;">отзывов, ваш ответ</span>
+      </div>
+      <span style="font-size: 13px; text-transform: uppercase; letter-spacing: 2px; color: #6b655c;">максимум 5 000</span>
+    </div>
+    <div style="position: relative; height: 24px; display: flex; align-items: center;">
+      <div style="height: 2px; width: 100%; background: #1c1a17;"></div>
+      <div style="position: absolute; left: calc(70% - 10px); width: 20px; height: 20px; border-radius: 50%; background: #b6432a; border: 3px solid #fbf8f2; box-sizing: border-box; box-shadow: 0 0 0 2px #1c1a17;"></div>
+    </div>
+    <div style="display: flex; justify-content: space-between; font-size: 12px; color: #6b655c; letter-spacing: 1px;">
+      <span>1</span><span>100</span><span>10 тыс</span><span>1 млн</span><span>5 млн</span>
+    </div>
+    <div style="display: flex; align-items: center; justify-content: flex-end; gap: 16px;">
+      <span style="font-size: 14px; color: #6b655c;">или впишите число</span>
+      <div style="padding: 14px 36px; background: #b6432a; color: #fbf8f2; font-weight: 600; font-size: 16px; letter-spacing: 1px;">Ответить</div>
+    </div>
+  </div>
+</div>
+</x-dc>
+</body>
+</html>

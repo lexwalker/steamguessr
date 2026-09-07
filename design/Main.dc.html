@@ -1,0 +1,121 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <style>
+    body { margin: 0; }
+    a { color: #66c0f4; text-decoration: none; } a:hover { color: #ffffff; }
+  </style>
+</helmet>
+<div style="width: 1280px; min-height: 1000px; display: flex; flex-direction: column; background: radial-gradient(1200px 600px at 50% -200px, #2a475e 0%, #1b2838 55%, #171a21 100%); color: #c6d4df; font-family: 'Motiva Sans', 'Segoe UI', Roboto, Arial, sans-serif; font-size: 15px; line-height: 1.5;">
+
+  <div style="display: flex; align-items: center; justify-content: space-between; padding: 10px 20px; background: rgba(23, 26, 33, 0.85); border-bottom: 1px solid rgba(255, 255, 255, 0.08);">
+    <div style="display: flex; align-items: center; gap: 8px; color: #ffffff; font-size: 18px; font-weight: 600;">
+      <div style="display: grid; place-items: center; width: 28px; height: 28px; border-radius: 6px; background: linear-gradient(180deg, #3b5a75, #171a21); color: {{accent}}; font-weight: 800;">?</div>
+      <span>SteamGuessr</span>
+    </div>
+    <span style="color: #8f98a0; font-size: 12px;">1 600 игр · датасет 2026-09-07</span>
+  </div>
+
+  <div style="flex-grow: 1; width: 1040px; box-sizing: border-box; margin: 0 auto; padding: 16px; display: flex; flex-direction: column;">
+
+    <div style="display: flex; align-items: center; gap: 18px; padding: 4px 2px 12px; color: #8f98a0; font-size: 14px;">
+      <span>Микс</span>
+      <span>Раунд 1 из 5</span>
+      <span>Очки: 0</span>
+      <span style="margin-left: auto; color: {{accent}};">Выйти</span>
+    </div>
+
+    <div style="display: grid; grid-template-columns: 1.1fr 1fr; gap: 18px; background: rgba(0, 0, 0, 0.28); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 6px; padding: 16px;">
+      <div style="display: flex; flex-direction: column; gap: 8px;">
+        <img src="hades.jpg" alt="" style="width: 100%; aspect-ratio: 460 / 215; object-fit: cover; border-radius: 4px; display: block; background: #000000;">
+        <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px;">
+          <img src="shot1.jpg" alt="" style="width: 100%; aspect-ratio: 16 / 9; object-fit: cover; border-radius: 3px; display: block; background: #000000;">
+          <img src="shot2.jpg" alt="" style="width: 100%; aspect-ratio: 16 / 9; object-fit: cover; border-radius: 3px; display: block; background: #000000;">
+          <img src="shot3.jpg" alt="" style="width: 100%; aspect-ratio: 16 / 9; object-fit: cover; border-radius: 3px; display: block; background: #000000;">
+          <img src="shot4.jpg" alt="" style="width: 100%; aspect-ratio: 16 / 9; object-fit: cover; border-radius: 3px; display: block; background: #000000;">
+        </div>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 12px;">
+        <div style="display: flex; flex-direction: column; gap: 8px;">
+          <div style="font-size: 24px; line-height: 1.2; color: #ffffff; font-weight: 700;">Hades</div>
+          <div style="font-size: 14px; color: #c6d4df;">Бросьте вызов богу мёртвых и прорубите себе путь из Подземного мира в игре в жанрах «рогалик» и «данжен-кроулер» от создателей Bastion, Transistor и Pyre.</div>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 8px;">
+          <div style="display: flex; flex-direction: column; gap: 4px; padding: 8px 12px; border-radius: 4px; border: 1px solid rgba(255, 255, 255, 0.08); background: rgba(0, 0, 0, 0.2);">
+            <div style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: #8f98a0;">Теги и жанры</div>
+            <div style="display: flex; flex-wrap: wrap; gap: 4px;">
+              <span style="padding: 2px 8px; border-radius: 2px; background: {{accentSoft}}; color: {{accent}}; font-size: 12px;">Action Roguelike</span>
+              <span style="padding: 2px 8px; border-radius: 2px; background: {{accentSoft}}; color: {{accent}}; font-size: 12px;">Rogue-lite</span>
+              <span style="padding: 2px 8px; border-radius: 2px; background: {{accentSoft}}; color: {{accent}}; font-size: 12px;">Hack and Slash</span>
+              <span style="padding: 2px 8px; border-radius: 2px; background: {{accentSoft}}; color: {{accent}}; font-size: 12px;">Indie</span>
+              <span style="padding: 2px 8px; border-radius: 2px; background: {{accentSoft}}; color: {{accent}}; font-size: 12px;">Mythology</span>
+              <span style="padding: 2px 8px; border-radius: 2px; background: {{accentSoft}}; color: {{accent}}; font-size: 12px;">Action</span>
+              <span style="padding: 2px 8px; border-radius: 2px; background: {{accentSoft}}; color: {{accent}}; font-size: 12px;">Rogue-like</span>
+            </div>
+          </div>
+
+          <div style="display: flex; align-items: center; gap: 8px; padding: 8px 12px; border-radius: 4px; border: 1px solid rgba(255, 255, 255, 0.08); background: rgba(255, 255, 255, 0.04); color: #8f98a0;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#e0913d" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="11" width="16" height="10" rx="2"></rect><path d="M8 11V7a4 4 0 0 1 8 0v4"></path></svg>
+            <span>Год, цена, разработчик</span>
+            <span style="margin-left: auto; color: #e0913d; font-weight: 600;">−750</span>
+          </div>
+
+          <div style="display: flex; align-items: center; gap: 8px; padding: 8px 12px; border-radius: 4px; border: 1px solid rgba(255, 255, 255, 0.08); background: rgba(255, 255, 255, 0.04); color: #8f98a0;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#e0913d" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="11" width="16" height="10" rx="2"></rect><path d="M8 11V7a4 4 0 0 1 8 0v4"></path></svg>
+            <span>Metacritic, DLC, достижения</span>
+            <span style="margin-left: auto; color: #e0913d; font-weight: 600;">−1 000</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div style="margin-top: 16px; display: flex; flex-direction: column; gap: 8px; background: rgba(0, 0, 0, 0.28); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 6px; padding: 18px 18px 14px;">
+      <div style="display: flex; align-items: baseline; gap: 8px; font-size: 18px;">
+        <span style="font-size: 34px; font-weight: 700; color: #ffffff;">49 000</span>
+        <span>отзывов</span>
+        <span style="margin-left: auto; color: #8f98a0; font-size: 13px;">максимум за раунд: 4 500</span>
+      </div>
+      <div style="position: relative; height: 28px; display: flex; align-items: center;">
+        <div style="height: 4px; width: 100%; border-radius: 2px; background: linear-gradient(90deg, {{accent}} 0%, {{accent}} 70%, #4b5a6a 70%, #4b5a6a 100%);"></div>
+        <div style="position: absolute; left: calc(70% - 8px); width: 16px; height: 16px; border-radius: 50%; background: {{accent}};"></div>
+      </div>
+      <div style="position: relative; height: 22px; margin: 0 8px; color: #8f98a0; font-size: 11px;">
+        <span style="position: absolute; left: 14.9%; transform: translateX(-50%);">10</span>
+        <span style="position: absolute; left: 29.9%; transform: translateX(-50%);">100</span>
+        <span style="position: absolute; left: 44.8%; transform: translateX(-50%);">1 тыс</span>
+        <span style="position: absolute; left: 59.7%; transform: translateX(-50%);">10 тыс</span>
+        <span style="position: absolute; left: 74.6%; transform: translateX(-50%);">100 тыс</span>
+        <span style="position: absolute; left: 89.6%; transform: translateX(-50%);">1 млн</span>
+      </div>
+      <div style="display: flex; gap: 10px; align-items: center; margin-top: 2px;">
+        <div style="flex-grow: 1; padding: 10px 12px; border-radius: 3px; border: 1px solid rgba(255, 255, 255, 0.08); background: rgba(0, 0, 0, 0.3); color: #8f98a0; font-size: 15px;">или введи число</div>
+        <div style="padding: 12px 28px; border-radius: 3px; background: linear-gradient(90deg, #47bfff 0%, #1a44c2 100%); color: #ffffff; font-size: 16px; font-weight: 600;">Ответить</div>
+      </div>
+    </div>
+  </div>
+
+  <div style="padding: 14px 20px; color: #8f98a0; font-size: 12px; text-align: center; border-top: 1px solid rgba(255, 255, 255, 0.08);">Игра для своих. Числа берутся из открытых данных Steam, продажи и вишлисты Steam не публикует, поэтому угадываем отзывы.</div>
+</div>
+</x-dc>
+<script data-dc-script data-props='{"accent":{"editor":"color","default":"#66c0f4","options":["#66c0f4","#a4d007","#e5c07b","#ff6b57"],"section":"Цвет"}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const accent = this.props.accent ?? '#66c0f4';
+    const hex = accent.replace('#', '');
+    const full = hex.length === 3 ? hex.split('').map((c) => c + c).join('') : hex;
+    const n = parseInt(full, 16);
+    const rgb = [(n >> 16) & 255, (n >> 8) & 255, n & 255].join(', ');
+    return { accent, accentSoft: 'rgba(' + rgb + ', 0.2)' };
+  }
+}
+</script>
+</body>
+</html>
