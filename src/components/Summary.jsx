@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { fmt, scoreEmoji, poolLabel, MAX_ROUND } from '../lib/scoring.js';
 import { steamUrl } from '../lib/data.js';
-import { currentTheme, themeLabel } from '../lib/themes.js';
 
 function copy(text) {
   try {
@@ -17,7 +16,7 @@ export default function Summary({ games, results, total, daily, dateKey, pool, o
   const grid = results.map((r) => scoreEmoji(r.score)).join('');
   const link = location.origin + location.pathname + location.search;
   const title = daily ? `Дейли ${dateKey.split('-').reverse().join('.')}` : `Классика · ${poolLabel(pool)}`;
-  const shareText = `SteamGuessr · ${title} · тема ${themeLabel(currentTheme())}\n${fmt(total)} / ${fmt(max)}\n${grid}\n${link}`;
+  const shareText = `SteamGuessr · ${title}\n${fmt(total)} / ${fmt(max)}\n${grid}\n${link}`;
 
   function share(kind, text) {
     copy(text).then(() => setCopied(kind)).catch(() => setCopied('fail'));
@@ -41,7 +40,12 @@ export default function Summary({ games, results, total, daily, dateKey, pool, o
           {results.map((r, i) => (
             <tr key={i}>
               <td>{i + 1}</td>
-              <td><a href={steamUrl(games[i])} target="_blank" rel="noreferrer">{games[i].name}</a></td>
+              <td>
+                <a className="round-game" href={steamUrl(games[i])} target="_blank" rel="noreferrer">
+                  <img className="capsule" src={games[i].img} alt="" loading="lazy" />
+                  <span>{games[i].name}</span>
+                </a>
+              </td>
               <td>{fmt(r.guess)}</td>
               <td>{fmt(games[i].reviews)}</td>
               <td>{scoreEmoji(r.score)} {fmt(r.score)}</td>

@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { HINTS, fmt } from '../lib/scoring.js';
 
 function priceText(g) {
@@ -13,6 +14,15 @@ function ownersText(s) {
   return nums.length === 2 ? `${fmt(nums[0])} – ${fmt(nums[1])}` : s;
 }
 
+function LockIcon() {
+  return (
+    <svg className="hint-lock" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <rect x="4" y="11" width="16" height="10" rx="2"></rect>
+      <path d="M8 11V7a4 4 0 0 1 8 0v4"></path>
+    </svg>
+  );
+}
+
 function HintBlock({ hint, unlocked, onHint, children }) {
   if (unlocked) {
     return (
@@ -24,26 +34,37 @@ function HintBlock({ hint, unlocked, onHint, children }) {
   }
   return (
     <button type="button" className="hint locked" onClick={() => onHint(hint.id)}>
-      <span className="hint-lock">🔒</span> {hint.label}
+      <LockIcon />
+      <span className="hint-name">{hint.label}</span>
       <span className="hint-cost">−{fmt(hint.cost)}</span>
     </button>
   );
 }
 
 export default function GameCard({ game, hints, onHint, revealed }) {
+  const [active, setActive] = useState(-1); // -1 shows the header image, otherwise a screenshot index
   const unlocked = (id) => revealed || hints.includes(id);
   const [tags, details, press] = HINTS;
+  const shot = active >= 0 ? game.shots[active] : null;
+  const main = shot || game.img;
+  const full = shot ? shot.replace('.600x338', '.1920x1080') : game.img;
 
   return (
     <section className="card">
       <div className="card-media">
-        <img className="card-header" src={game.img} alt="" />
+        <a className="card-main" href={full} target="_blank" rel="noreferrer" title="Открыть в полном размере">
+          <img className="card-bg" src={main} alt="" aria-hidden="true" />
+          <img className="card-fg" src={main} alt="" />
+        </a>
         {game.shots.length > 0 && (
           <div className="shots">
-            {game.shots.map((s) => (
-              <a key={s} href={s.replace('.600x338', '.1920x1080')} target="_blank" rel="noreferrer">
+            <button type="button" className={'shot' + (active === -1 ? ' active' : '')} onClick={() => setActive(-1)}>
+              <img src={game.img} alt="" />
+            </button>
+            {game.shots.map((s, i) => (
+              <button key={s} type="button" className={'shot' + (active === i ? ' active' : '')} onClick={() => setActive(i)}>
                 <img src={s} alt="" loading="lazy" />
-              </a>
+              </button>
             ))}
           </div>
         )}
@@ -81,7 +102,10 @@ export default function GameCard({ game, hints, onHint, revealed }) {
           {revealed && (
             <div className="hint open">
               <div className="hint-label">Издатель</div>
-              <div className="hint-body">{game.pub.join(', ') || '—'}{game.owners ? ` · владельцев по SteamSpy: ${ownersText(game.owners)}` : ''}</div>
+              <div className="hint-body">
+                {game.pub.join(', ') || '—'}
+                {game.owners ? ` · владельцев по SteamSpy: ${ownersText(game.owners)}` : ''}
+              </div>
             </div>
           )}
         </div>

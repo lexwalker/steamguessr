@@ -34,8 +34,13 @@ export function ratioText(guess, actual) {
   const a = actual + 1;
   const r = g > a ? g / a : a / g;
   if (r < 1.05) return 'почти в точку';
-  const rs = r < 10 ? r.toFixed(1).replace('.', ',') : fmt(Math.round(r));
-  return `в ${rs} раза ${g > a ? 'больше' : 'меньше'} правды`;
+  const dir = g > a ? 'больше' : 'меньше';
+  if (r < 10) return `в ${r.toFixed(1).replace('.', ',')} раза ${dir} правды`;
+  const n = Math.round(r);
+  const m10 = n % 10;
+  const m100 = n % 100;
+  const word = m10 >= 2 && m10 <= 4 && !(m100 >= 12 && m100 <= 14) ? 'раза' : 'раз';
+  return `в ${fmt(n)} ${word} ${dir} правды`;
 }
 
 export function scoreEmoji(s) {

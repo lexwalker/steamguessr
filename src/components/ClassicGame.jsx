@@ -56,15 +56,20 @@ export default function ClassicGame({ data, seed, pool, daily, onExit, onReplay 
   return (
     <div className="game">
       <div className="topbar">
-        <span>{daily ? 'Дейли' : poolLabel(pool)}</span>
+        <span className="crumb">{daily ? 'Дейли' : poolLabel(pool)}</span>
+        <div className="pips" aria-label={`Раунд ${round + 1} из ${games.length}`}>
+          {games.map((g, i) => (
+            <span key={g.id} className={'pip' + (i < results.length ? ' done' : i === round ? ' current' : '')}></span>
+          ))}
+        </div>
         <span>Раунд {round + 1} из {games.length}</span>
-        <span>Очки: {fmt(total)}</span>
+        <span className="topbar-score">Очки: <strong>{fmt(total)}</strong></span>
         <button className="link" onClick={onExit}>Выйти</button>
       </div>
-      <GameCard game={game} hints={hints} onHint={(id) => setHints([...hints, id])} revealed={phase === 'reveal'} />
+      <GameCard key={game.id} game={game} hints={hints} onHint={(id) => setHints([...hints, id])} revealed={phase === 'reveal'} />
       {phase === 'play'
         ? <GuessSlider key={game.id} maxScore={maxScore} onSubmit={submit} />
-        : <RoundResult game={game} result={results[results.length - 1]} isLast={results.length >= games.length} onNext={next} />}
+        : <RoundResult key={game.id} game={game} result={results[results.length - 1]} isLast={results.length >= games.length} onNext={next} />}
     </div>
   );
 }

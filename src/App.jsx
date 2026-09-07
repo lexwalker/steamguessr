@@ -4,7 +4,6 @@ import { randomSeed, todayKey } from './lib/rng.js';
 import Home from './components/Home.jsx';
 import ClassicGame from './components/ClassicGame.jsx';
 import HigherLower from './components/HigherLower.jsx';
-import ThemeSwitch from './components/ThemeSwitch.jsx';
 
 function screenFromUrl() {
   const p = new URLSearchParams(location.search);
@@ -82,12 +81,9 @@ export default function App() {
   return (
     <div className="app">
       <header className="header">
-        <div className="header-left">
-          <button className="logo" onClick={() => go({ name: 'home' })}>
-            <span className="logo-mark">?</span> SteamGuessr
-          </button>
-          <ThemeSwitch />
-        </div>
+        <button className="logo" onClick={() => go({ name: 'home' })}>
+          <span className="logo-mark">?</span> SteamGuessr
+        </button>
         {data && <span className="header-meta">{data.games.length} игр · датасет {data.version}</span>}
       </header>
       <main className="main">{body}</main>
