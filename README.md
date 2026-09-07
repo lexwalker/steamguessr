@@ -10,7 +10,20 @@ npm run dataset        # собрать датасет (см. ниже), мож�
 npm run dev            # http://localhost:5173
 ```
 
-Сборка для хостинга: `npm run build`, папку `dist` можно положить на любой статический хостинг (GitHub Pages, Cloudflare Pages, обычный веб-сервер). Пути в сборке относительные, работает из любой подпапки.
+Живая версия: **https://lexwalker.github.io/steamguessr/**
+
+## Деплой
+
+Репозиторий: https://github.com/lexwalker/steamguessr. Каждый push в `main` собирает сайт и выкладывает его на GitHub Pages через workflow `.github/workflows/deploy.yml` (источник Pages: GitHub Actions). Датасет `public/data/games.json` хранится в репозитории, поэтому после пересборки датасета его нужно закоммитить и запушить:
+
+```bash
+npm run dataset
+git add public/data/games.json
+git commit -m "Обновить датасет"
+git push
+```
+
+Локальная сборка: `npm run build`, папку `dist` можно положить на любой статический хостинг. Пути в сборке относительные, работает из любой подпапки.
 
 ## Режимы
 
