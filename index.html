@@ -5,6 +5,20 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="color-scheme" content="dark" />
     <link rel="icon" href="./favicon.svg" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@700;900&family=Manrope:wght@400;600;800&family=Playfair+Display:wght@700;900&family=IBM+Plex+Sans:wght@400;500;600&display=swap" />
+    <script>
+      (function () {
+        var themes = ['steam', 'neon', 'paper', 'mono'];
+        var fromUrl = new URLSearchParams(location.search).get('theme');
+        var saved = null;
+        try { saved = localStorage.getItem('steamguessr-theme'); } catch (e) {}
+        var theme = themes.indexOf(fromUrl) !== -1 ? fromUrl : (themes.indexOf(saved) !== -1 ? saved : 'steam');
+        document.documentElement.dataset.theme = theme;
+        if (theme !== saved) { try { localStorage.setItem('steamguessr-theme', theme); } catch (e) {} }
+      })();
+    </script>
     <title>SteamGuessr</title>
   </head>
   <body>
