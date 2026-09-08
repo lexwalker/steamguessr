@@ -5,6 +5,12 @@ import { POOLS } from './scoring.js';
 const CDN = 'https://shared.akamai.steamstatic.com/store_item_assets/steam/apps';
 export const headerUrl = (id) => `${CDN}/${id}/header.jpg`;
 export const shotUrl = (id, s) => (/^[0-9a-f]{20,}$/.test(s) ? `${CDN}/${id}/ss_${s}.600x338.jpg` : s);
+const VIDEO = 'https://video.akamai.steamstatic.com/store_trailers';
+// Legacy static trailer files still exist for every trailer id; the API itself now only lists DASH/HLS manifests.
+export const movieUrls = (mid) => (typeof mid === 'number' ? {
+  webm: `${VIDEO}/${mid}/movie480_vp9.webm`,
+  mp4: `${VIDEO}/${mid}/movie480.mp4`,
+} : null);
 
 function normalize(g) {
   return {
@@ -16,6 +22,7 @@ function normalize(g) {
     dev: g.dev || [],
     pub: g.pub || [],
     platforms: g.platforms || [],
+    movie: typeof g.movie === 'number' ? g.movie : null,
   };
 }
 

@@ -66,10 +66,10 @@ export default function ClassicGame({ data, seed, pool, daily, onExit, onReplay 
         <span className="topbar-score">Очки: <strong>{fmt(total)}</strong></span>
         <button className="link" onClick={onExit}>Выйти</button>
       </div>
-      <GameCard key={game.id} game={game} hints={hints} onHint={(id) => setHints([...hints, id])} revealed={phase === 'reveal'} />
+      <GameCard key={"card-" + game.id} game={game} hints={hints} onHint={(id) => setHints([...hints, id])} revealed={phase === 'reveal'} />
       {phase === 'play'
-        ? <GuessSlider key={game.id} maxScore={maxScore} onSubmit={submit} />
-        : <RoundResult key={game.id} game={game} result={results[results.length - 1]} isLast={results.length >= games.length} onNext={next} />}
+        ? <GuessSlider key={'guess-' + game.id} maxScore={maxScore} onSubmit={submit} />
+        : <RoundResult key={'result-' + game.id} game={game} result={results[results.length - 1]} isLast={results.length >= games.length} onNext={next} />}
     </div>
   );
 }

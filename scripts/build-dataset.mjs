@@ -17,6 +17,7 @@
     node scripts/build-dataset.mjs --limit=1500    # stop after 1500 new apps this run
     node scripts/build-dataset.mjs --spy-pages=0,1 --tail=300 --lang=english --cc=us
     node scripts/build-dataset.mjs --rebuild       # only reassemble games.json from the cache
+    node scripts/build-dataset.mjs --enrich=movies # add trailer ids to apps collected without them
 */
 import fs from 'node:fs';
 import path from 'node:path';
@@ -158,7 +159,7 @@ function compose(id, tier, data, q, spy) {
   const platforms = ['windows', 'mac', 'linux'].filter((p) => data.platforms && data.platforms[p]);
   const tags = Object.entries((spy && spy.tags) || {}).sort((a, b) => b[1] - a[1]).slice(0, 7).map((t) => t[0]);
   const year = ((data.release_date && data.release_date.date) || '').match(/\d{4}/);
-  const m0 = data.movies && data.movies[0];
+  const m0 = (data.movies || []).find((m) => m.highlight) || (data.movies || [])[0];
   return {
     id,
     tier,
@@ -166,7 +167,8 @@ function compose(id, tier, data, q, spy) {
     desc: desc.length > 320 ? desc.slice(0, 317).replace(/\s+\S*$/, '') + '…' : desc,
     img: data.header_image,
     shots: (data.screenshots || []).slice(0, 4).map((s) => s.path_thumbnail),
-    movie: (m0 && ((m0.webm && m0.webm['480']) || (m0.mp4 && m0.mp4['480']))) || null,
+    movie: m0 ? m0.id : null,
+    moviesChecked: true,
     tags,
     genres: (data.genres || []).map((g) => g.description).slice(0, 4),
     year: year ? Number(year[0]) : null,
@@ -220,7 +222,8 @@ const SHOT_RE = /^https:\/\/shared\.(?:akamai|fastly)\.steamstatic\.com\/store_i
 function compact(g) {
   const out = { ...g };
   delete out.ccu;
-  delete out.movie;
+  delete out.moviesChecked;
+  if (typeof out.movie !== 'number') delete out.movie;
   const hm = HEADER_RE.exec(g.img || '');
   if (hm && hm[1] === String(g.id)) delete out.img;
   out.shots = (g.shots || []).map((s) => {
@@ -246,7 +249,45 @@ function assemble() {
 
 // ------------------------------------------------------------------ main
 
+// Fill in trailer ids for cached apps collected before movies were stored (popular games first).
+async function enrichMovies() {
+  const todo = [];
+  for (const f of fs.readdirSync(APPS)) {
+    if (!f.endsWith('.json')) continue;
+    const g = readJSON(path.join(APPS, f));
+    if (g && !g.skip && !g.moviesChecked) todo.push(g);
+  }
+  todo.sort((a, b) => b.reviews - a.reviews);
+  const total = Math.min(todo.length, LIMIT);
+  log(`movies: ${todo.length} apps without trailer info, checking ${total}`);
+  let done = 0;
+  const stats = { ok: 0, none: 0, network: 0 };
+  const workers = Array.from({ length: CONCURRENCY }, async () => {
+    while (todo.length && done < LIMIT) {
+      const g = todo.shift();
+      const d = await qStore(() => getJSON(`https://store.steampowered.com/api/appdetails?appids=${g.id}&filters=movies`));
+      if (d === undefined) { stats.network++; continue; }
+      const entry = d && d[g.id];
+      const movies = (entry && entry.success && entry.data && entry.data.movies) || [];
+      const m = movies.find((x) => x.highlight) || movies[0];
+      g.movie = m ? m.id : null;
+      g.moviesChecked = true;
+      writeJSON(path.join(APPS, g.id + '.json'), g);
+      stats[m ? 'ok' : 'none']++;
+      done++;
+      if (done % 50 === 0) { assemble(); log(`movies ${done}/${total} (ok ${stats.ok}, none ${stats.none}, network ${stats.network})`); }
+    }
+  });
+  await Promise.all(workers);
+  const r = assemble();
+  log(`done. movies: ok ${stats.ok}, none ${stats.none}, network ${stats.network}; games.json: ${r.games} games`);
+}
+
 async function main() {
+  if (args.enrich === 'movies') {
+    await enrichMovies();
+    return;
+  }
   if (args.rebuild) {
     const r = assemble();
     log(`games.json rebuilt: ${r.games} games (${r.skipped} skipped entries)`);

@@ -47,7 +47,7 @@ export default function Home({ data, onStart }) {
 
       <div className="band" aria-hidden="true">
         <div className="band-row">
-          {band.map((g) => <img key={g.id} src={g.img} alt="" loading="lazy" />)}
+          {[...band, ...band].map((g, i) => <img key={g.id + '-' + i} src={g.img} alt="" loading="lazy" />)}
         </div>
       </div>
 

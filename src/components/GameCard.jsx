@@ -1,5 +1,7 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { HINTS, fmt } from '../lib/scoring.js';
+import { movieUrls } from '../lib/data.js';
+import Lightbox from './Lightbox.jsx';
 
 function priceText(g) {
   if (g.price === 0) return 'бесплатно';
@@ -23,6 +25,20 @@ function LockIcon() {
   );
 }
 
+function PlayIcon({ size = 22 }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7z"></path></svg>
+  );
+}
+
+function ZoomIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <circle cx="11" cy="11" r="7"></circle><path d="M21 21l-4.3-4.3M11 8v6M8 11h6"></path>
+    </svg>
+  );
+}
+
 function HintBlock({ hint, unlocked, onHint, children }) {
   if (unlocked) {
     return (
@@ -42,28 +58,45 @@ function HintBlock({ hint, unlocked, onHint, children }) {
 }
 
 export default function GameCard({ game, hints, onHint, revealed }) {
-  const [active, setActive] = useState(-1); // -1 shows the header image, otherwise a screenshot index
+  const [videoFailed, setVideoFailed] = useState(false);
+  const items = useMemo(() => {
+    const list = [];
+    const mv = movieUrls(game.movie);
+    if (mv && !videoFailed) list.push({ type: 'video', ...mv, poster: game.img, thumb: game.img });
+    list.push({ type: 'image', src: game.img, full: game.img, thumb: game.img });
+    for (const s of game.shots) list.push({ type: 'image', src: s, full: s.replace('.600x338', '.1920x1080'), thumb: s });
+    return list;
+  }, [game, videoFailed]);
+
+  const [active, setActive] = useState(0);
+  const [lightbox, setLightbox] = useState(-1);
   const unlocked = (id) => revealed || hints.includes(id);
   const [tags, details, press] = HINTS;
-  const shot = active >= 0 ? game.shots[active] : null;
-  const main = shot || game.img;
-  const full = shot ? shot.replace('.600x338', '.1920x1080') : game.img;
+  const cur = items[Math.min(active, items.length - 1)];
 
   return (
     <section className="card">
       <div className="card-media">
-        <a className="card-main" href={full} target="_blank" rel="noreferrer" title="Открыть в полном размере">
-          <img className="card-bg" src={main} alt="" aria-hidden="true" />
-          <img className="card-fg" src={main} alt="" />
-        </a>
-        {game.shots.length > 0 && (
-          <div className="shots">
-            <button type="button" className={'shot' + (active === -1 ? ' active' : '')} onClick={() => setActive(-1)}>
-              <img src={game.img} alt="" />
+        <div className="card-viewer">
+          {cur.type === 'video' ? (
+            <video key={cur.webm} className="card-video" controls autoPlay muted playsInline poster={cur.poster}>
+              <source src={cur.webm} type="video/webm" />
+              <source src={cur.mp4} type="video/mp4" onError={() => setVideoFailed(true)} />
+            </video>
+          ) : (
+            <button type="button" className="card-main" onClick={() => setLightbox(active)} title="Увеличить">
+              <img className="card-bg" src={cur.src} alt="" aria-hidden="true" />
+              <img className="card-fg" src={cur.src} alt="" />
+              <span className="zoom-badge"><ZoomIcon /></span>
             </button>
-            {game.shots.map((s, i) => (
-              <button key={s} type="button" className={'shot' + (active === i ? ' active' : '')} onClick={() => setActive(i)}>
-                <img src={s} alt="" loading="lazy" />
+          )}
+        </div>
+        {items.length > 1 && (
+          <div className="shots">
+            {items.map((it, i) => (
+              <button key={it.type + (it.thumb || it.webm)} type="button" className={'shot' + (i === active ? ' active' : '') + (it.type === 'video' ? ' video' : '')} onClick={() => setActive(i)}>
+                <img src={it.thumb} alt="" loading="lazy" />
+                {it.type === 'video' && <span className="play-badge"><PlayIcon size={18} /></span>}
               </button>
             ))}
           </div>
@@ -110,6 +143,10 @@ export default function GameCard({ game, hints, onHint, revealed }) {
           )}
         </div>
       </div>
+
+      {lightbox >= 0 && (
+        <Lightbox items={items} index={Math.min(lightbox, items.length - 1)} onClose={() => setLightbox(-1)} onIndex={(i) => { setLightbox(i); setActive(i); }} />
+      )}
     </section>
   );
 }

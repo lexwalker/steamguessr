@@ -57,7 +57,10 @@ node scripts/build-dataset.mjs --limit=500            # не больше 500 н
 node scripts/build-dataset.mjs --spy-pages=0,1,2,3,4,5 --tail=1500
 node scripts/build-dataset.mjs --lang=english --cc=us # язык описаний и регион цен
 node scripts/build-dataset.mjs --rebuild              # только пересобрать games.json из кэша
+node scripts/build-dataset.mjs --enrich=movies        # добавить id трейлеров играм, собранным без них
 ```
+
+Трейлеры: Steam отдаёт в API только потоковые манифесты, но по id ролика на CDN по-прежнему лежат файлы `movie480_vp9.webm` и `movie480.mp4`, их и показывает галерея. Скриншоты и трейлер открываются во всплывающем окне со стрелками и клавиатурой.
 
 Чтобы пересобрать список игр заново (например, добавить страницы SteamSpy или больше случайных игр), удали `scripts/cache/pool.json` и запусти сборку с нужными ключами. Уже скачанные игры не запрашиваются повторно.
 
