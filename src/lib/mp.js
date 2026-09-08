@@ -3,7 +3,7 @@ import { randomSeed } from './rng.js';
 import { MAX_ROUND, scoreRound } from './scoring.js';
 
 export const MP_LIMITS = { minPlayers: 1, maxPlayers: 8 };
-export const REVEAL_PAUSE = 12000;   // ms shown between reveal and the next round
+export const REVEAL_PAUSE = 10000;   // ms shown between reveal and the next round
 export const OFFLINE_AFTER = 20000;  // ms without a ping before a player counts as away
 export const SUBMIT_GRACE = 1500;    // ms after the deadline before the host closes the round
 
@@ -45,7 +45,7 @@ export function createHost({ code, me, data, publish, onState }) {
       code,
       hostId: me.id,
       phase: 'lobby',
-      settings: { pool: 'mix', rounds: 5, timer: 60 },
+      settings: { pool: 'mix', rounds: 5, timer: 20 },
       players: { [me.id]: { name: me.name, score: 0, online: true } },
       order: [me.id],
       seed: '',

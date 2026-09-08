@@ -10,7 +10,7 @@ import { ScaleBar, Verdict } from './RoundResult.jsx';
 import HowTo from './HowTo.jsx';
 
 const ROUND_OPTIONS = [3, 5, 10];
-const TIMER_OPTIONS = [30, 45, 60, 90, 120];
+const TIMER_OPTIONS = [10, 15, 20, 30];
 
 function lobbyLink(code) {
   return `${location.origin}${location.pathname}?mode=mp&lobby=${code}`;
@@ -64,7 +64,7 @@ function TimerBar({ deadline, offset, total }) {
   const secs = Math.ceil(left / 1000);
   const frac = total ? Math.min(1, left / (total * 1000)) : 1;
   return (
-    <div className={'timer' + (secs <= 10 ? ' low' : '')}>
+    <div className={'timer' + (secs <= 5 ? ' low' : '')}>
       <div className="timer-track"><div className="timer-fill" style={{ width: `${frac * 100}%` }}></div></div>
       <span className="timer-text">{secs} с</span>
     </div>
