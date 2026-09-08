@@ -68,6 +68,7 @@ export function setLang(code) {
   }
   document.documentElement.lang = n;
   listeners.forEach((fn) => fn());
+  ensureDescs(n);
 }
 
 // Re-renders the component when the language changes.
@@ -170,8 +171,35 @@ export function scoreLabel(game) {
   return t('score.none');
 }
 
-// Description in the interface language when the dataset has it, otherwise the fallback chain.
+// Descriptions live in public/data/desc/<lang>.json (one file per interface language), loaded on
+// demand; games.json itself carries no text besides the name.
+const DESCS = {};
+const descLoading = {};
+
+export function ensureDescs(code = current) {
+  if (DESCS[code]) return Promise.resolve();
+  if (descLoading[code]) return descLoading[code];
+  descLoading[code] = fetch(`${import.meta.env.BASE_URL}data/desc/${code}.json`, { cache: 'no-cache' })
+    .then((r) => (r.ok ? r.json() : {}))
+    .catch(() => ({}))
+    .then((d) => {
+      DESCS[code] = d || {};
+      delete descLoading[code];
+      listeners.forEach((fn) => fn());
+    });
+  return descLoading[code];
+}
+
 export function gameDesc(game) {
-  if (current === 'ru') return game.desc || game.descEn || '';
-  return game.descEn || game.desc || '';
+  const own = DESCS[current];
+  if (own && own[game.id]) return own[game.id];
+  // while the current language is still loading, any loaded one beats an empty card
+  for (const code of Object.keys(DESCS)) if (DESCS[code][game.id]) return DESCS[code][game.id];
+  return game.desc || '';
+}
+
+// Genres are shown only for games without tags; the dataset holds them in Russian plus English.
+export function gameGenres(game) {
+  if (current !== 'ru' && Array.isArray(game.genresEn) && game.genresEn.length) return game.genresEn;
+  return game.genres || [];
 }

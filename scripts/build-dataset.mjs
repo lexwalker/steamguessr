@@ -18,7 +18,9 @@
     node scripts/build-dataset.mjs --spy-pages=0,1 --tail=300 --lang=english --cc=us
     node scripts/build-dataset.mjs --rebuild       # only reassemble games.json from the cache
     node scripts/build-dataset.mjs --enrich=movies # add trailer ids to apps collected without them
-    node scripts/build-dataset.mjs --enrich=desc   # add English short descriptions (dataset is collected in Russian)
+    node scripts/build-dataset.mjs --descs         # descriptions in all interface languages -> public/data/desc/<lang>.json,
+                                                   # plus English Steam tags / genres for games SteamSpy has no tags for
+    node scripts/build-dataset.mjs --tags          # only the tags / English genres step of --descs
 */
 import fs from 'node:fs';
 import path from 'node:path';
@@ -245,7 +247,9 @@ function compact(g) {
   out.score = SCORE_BY_DESC[g.scoreDesc] ?? 0;
   delete out.scoreDesc;
   out.date = isoDate(g.date);
-  if (!out.descEn) delete out.descEn;
+  delete out.desc;
+  delete out.descEn;
+  if (!Array.isArray(out.genresEn) || !out.genresEn.length) delete out.genresEn;
   const hm = HEADER_RE.exec(g.img || '');
   if (hm && hm[1] === String(g.id)) delete out.img;
   out.shots = (g.shots || []).map((s) => {
@@ -305,38 +309,103 @@ async function enrichMovies() {
   log(`done. movies: ok ${stats.ok}, none ${stats.none}, network ${stats.network}; games.json: ${r.games} games`);
 }
 
-// English short descriptions (the dataset was collected with l=russian); popular games first.
-async function enrichDesc() {
-  const todo = [];
+// ---------------------------------------------------------------- descriptions per language
+// IStoreBrowseService/GetItems returns short descriptions (and tag ids) for up to ~100 apps per
+// request in any store language, no key needed, so all interface languages take minutes, not hours.
+const STORE_LANGS = { en: 'english', ru: 'russian', zh: 'schinese', ja: 'japanese', ko: 'koreana', de: 'german', fr: 'french', es: 'spanish', pt: 'brazilian', pl: 'polish', tr: 'turkish' };
+const DESC_DIR = path.join(ROOT, 'public', 'data', 'desc');
+const BATCH = 100;
+const GENRE_EN = {
+  'Экшены': 'Action', 'Приключенческие игры': 'Adventure', 'Казуальные игры': 'Casual', 'Инди': 'Indie', 'Многопользовательские игры': 'Massively Multiplayer',
+  'Гонки': 'Racing', 'Ролевые игры': 'RPG', 'Симуляторы': 'Simulation', 'Спорт': 'Sports', 'Стратегии': 'Strategy', 'Бесплатные': 'Free To Play',
+  'Ранний доступ': 'Early Access', 'Разработка ПО': 'Software Training', 'Дизайн и иллюстрация': 'Design & Illustration', 'Утилиты': 'Utilities',
+  'Работа с видео': 'Video Production', 'Работа с аудио': 'Audio Production', 'Анимация и моделирование': 'Animation & Modeling', 'Образование': 'Education',
+  'Веб-разработка': 'Web Publishing', 'Разработка игр': 'Game Development', 'Публикация фото': 'Photo Editing', 'Бухгалтерия': 'Accounting', 'Насилие': 'Violent', 'Кровь': 'Gore',
+};
+const qBrowse = makeQueue(400);
+
+function listGames() {
+  const games = [];
   for (const f of fs.readdirSync(APPS)) {
     if (!f.endsWith('.json')) continue;
     const g = readJSON(path.join(APPS, f));
-    if (g && !g.skip && !g.descChecked) todo.push(g);
+    if (g && !g.skip) games.push(g);
   }
-  todo.sort((a, b) => b.reviews - a.reviews);
-  const total = Math.min(todo.length, LIMIT);
-  log(`desc: ${todo.length} apps without an English description, checking ${total}`);
-  let done = 0;
-  const stats = { ok: 0, none: 0, network: 0 };
-  const workers = Array.from({ length: CONCURRENCY }, async () => {
-    while (todo.length && done < LIMIT) {
-      const g = todo.shift();
-      const d = await qStore(() => getJSON(`https://store.steampowered.com/api/appdetails?appids=${g.id}&l=english&filters=basic`));
-      if (d === undefined) { stats.network++; continue; }
-      const entry = d && d[g.id];
-      const data = entry && entry.success && entry.data;
-      const desc = data ? stripHtml(data.short_description) : '';
-      if (desc) g.descEn = desc.length > 320 ? desc.slice(0, 317).replace(/\s+\S*$/, '') + '…' : desc;
-      g.descChecked = true;
-      writeJSON(path.join(APPS, g.id + '.json'), g);
-      stats[desc ? 'ok' : 'none']++;
-      done++;
-      if (done % 50 === 0) { assemble(); log(`desc ${done}/${total} (ok ${stats.ok}, none ${stats.none}, network ${stats.network})`); }
+  return games.sort((a, b) => b.reviews - a.reviews);
+}
+
+async function storeItems(ids, language, extra = {}) {
+  const q = { ids: ids.map((appid) => ({ appid })), context: { language, country_code: CC, steam_realm: 1 }, data_request: { include_basic_info: true, ...extra } };
+  const url = 'https://api.steampowered.com/IStoreBrowseService/GetItems/v1/?input_json=' + encodeURIComponent(JSON.stringify(q));
+  const d = await qBrowse(() => getJSON(url));
+  if (d === undefined) return undefined;
+  return (d && d.response && d.response.store_items) || [];
+}
+
+async function fillTags(games) {
+  const tagless = games.filter((g) => !Array.isArray(g.tags) || !g.tags.length);
+  if (!tagless.length) return;
+  const list = await getJSON('https://api.steampowered.com/IStoreService/GetTagList/v1/?language=english');
+  const names = new Map(((list && list.response && list.response.tags) || []).map((t) => [t.tagid, t.name]));
+  const byId = new Map(tagless.map((g) => [g.id, g]));
+  let filled = 0;
+  for (let i = 0; i < tagless.length; i += BATCH) {
+    const items = await storeItems(tagless.slice(i, i + BATCH).map((g) => g.id), 'english', { include_tag_count: 20 });
+    for (const it of items || []) {
+      const g = byId.get(it.appid);
+      const tags = (it.tagids || []).map((id) => names.get(id)).filter(Boolean);
+      if (g && tags.length) { g.tags = tags; writeJSON(path.join(APPS, g.id + '.json'), g); filled++; }
     }
-  });
-  await Promise.all(workers);
+  }
+  log(`tags: ${filled} of ${tagless.length} games without SteamSpy tags got Steam store tags`);
+  // English genres for whatever is still tagless (shown instead of tags); delisted games get a
+  // dictionary translation of the Russian genres, which are a fixed Steam list.
+  const todo = games.filter((g) => (!Array.isArray(g.tags) || !g.tags.length) && !(Array.isArray(g.genresEn) && g.genresEn.length));
+  for (const g of todo) {
+    const d = await qStore(() => getJSON(`https://store.steampowered.com/api/appdetails?appids=${g.id}&l=english&filters=genres`));
+    if (d === undefined) continue;
+    const data = d && d[g.id] && d[g.id].success && d[g.id].data;
+    const fetched = data && Array.isArray(data.genres) ? data.genres.map((x) => x.description) : [];
+    g.genresEn = fetched.length ? fetched : (g.genres || []).map((x) => GENRE_EN[x] || x);
+    writeJSON(path.join(APPS, g.id + '.json'), g);
+  }
+  if (todo.length) log(`genres: English genres fetched for ${todo.length} games that have no tags at all`);
+}
+
+async function buildDescs() {
+  const games = listGames();
+  const ids = games.map((g) => g.id);
+  fs.mkdirSync(DESC_DIR, { recursive: true });
+  const codes = args.langs ? String(args.langs).split(',') : Object.keys(STORE_LANGS);
+  let en = readJSON(path.join(DESC_DIR, 'en.json')) || {};
+  for (const code of codes) {
+    const language = STORE_LANGS[code];
+    if (!language) { log(`unknown language code ${code}`); continue; }
+    const out = {};
+    let network = 0;
+    for (let i = 0; i < ids.length; i += BATCH) {
+      const items = await storeItems(ids.slice(i, i + BATCH), language);
+      if (items === undefined) { network++; continue; }
+      for (const it of items) {
+        const d = it.basic_info ? stripHtml(it.basic_info.short_description) : '';
+        if (d) out[it.appid] = d;
+      }
+    }
+    const got = Object.keys(out).length;
+    if (code === 'en') en = out;
+    let fallback = 0;
+    for (const g of games) {
+      if (out[g.id]) continue;
+      // Russian keeps the cached Russian text; other languages prefer English (store, then the older appdetails pass)
+      const alt = code === 'ru' ? (g.desc || en[g.id] || g.descEn) : (en[g.id] || g.descEn || g.desc);
+      if (alt) { out[g.id] = alt; fallback++; }
+    }
+    writeJSON(path.join(DESC_DIR, code + '.json'), out);
+    log(`${code} (${language}): ${got} descriptions from the store, ${fallback} filled from English/cache, ${network} failed batches`);
+  }
+  await fillTags(games);
   const r = assemble();
-  log(`done. desc: ok ${stats.ok}, none ${stats.none}, network ${stats.network}; games.json: ${r.games} games`);
+  log(`done. descriptions for ${codes.join(', ')}; games.json: ${r.games} games`);
 }
 
 async function main() {
@@ -344,8 +413,13 @@ async function main() {
     await enrichMovies();
     return;
   }
-  if (args.enrich === 'desc') {
-    await enrichDesc();
+  if (args.descs) {
+    await buildDescs();
+    return;
+  }
+  if (args.tags) {
+    await fillTags(listGames());
+    log(`games.json: ${assemble().games} games`);
     return;
   }
   if (args.rebuild) {

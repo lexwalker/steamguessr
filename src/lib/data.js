@@ -19,6 +19,7 @@ function normalize(g) {
     shots: (g.shots || []).map((s) => shotUrl(g.id, s)),
     tags: g.tags || [],
     genres: g.genres || [],
+    genresEn: g.genresEn || [],
     dev: g.dev || [],
     pub: g.pub || [],
     platforms: g.platforms || [],

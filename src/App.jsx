@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { loadGames } from './lib/data.js';
 import { randomSeed, todayKey } from './lib/rng.js';
-import { fmt, t, useLang } from './lib/i18n.js';
+import { ensureDescs, fmt, t, useLang } from './lib/i18n.js';
 import Home from './components/Home.jsx';
 import ClassicGame from './components/ClassicGame.jsx';
 import HigherLower from './components/HigherLower.jsx';
@@ -34,6 +34,7 @@ export default function App() {
   useLang();
 
   useEffect(() => {
+    ensureDescs();
     loadGames().then(setData).catch(setError);
   }, []);
 

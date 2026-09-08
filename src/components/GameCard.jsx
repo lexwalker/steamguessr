@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { fmt, fmtDate, gameDesc, t } from '../lib/i18n.js';
+import { fmt, fmtDate, gameDesc, gameGenres, t } from '../lib/i18n.js';
 import { movieUrls } from '../lib/data.js';
 import Lightbox from './Lightbox.jsx';
 
@@ -90,7 +90,7 @@ export default function GameCard({ game, revealed, startWith = 'trailer', childr
           <div className="hint-body">
             <div className="tags">
               {game.tags.map((x) => <span key={x} className="tag">{x}</span>)}
-              {game.tags.length === 0 && game.genres.map((x) => <span key={x} className="tag">{x}</span>)}
+              {game.tags.length === 0 && gameGenres(game).map((x) => <span key={x} className="tag">{x}</span>)}
             </div>
           </div>
         </div>
