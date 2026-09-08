@@ -82,7 +82,7 @@ export default function Home({ data, onStart }) {
       <div className="modes">
         <section className="mode">
           <div className="mode-head"><span className="mode-icon"><IconTarget /></span><h2>Классика</h2></div>
-          <p>{ROUNDS} раундов, до {fmt(ROUNDS * ROUND_TOTAL)} очков. Подсказки открываются за часть очков раунда.</p>
+          <p>{ROUNDS} раундов, до {fmt(ROUNDS * ROUND_TOTAL)} очков. Трейлер, скриншоты, теги и цена видны сразу, решай по картинке.</p>
           <div className="pool-groups">
             <div className="chips">{POOLS.filter((p) => !p.byTag).map(chip)}</div>
             <div className="chips">{POOLS.filter((p) => p.byTag).map(chip)}</div>
@@ -133,7 +133,7 @@ export default function Home({ data, onStart }) {
         <summary>Как считаются очки</summary>
         <ul>
           <li>Загадывается число отзывов на всех языках, то же, что Steam показывает в строке «Все обзоры».</li>
-          <li>За число: 5000 × (1 − |log₁₀(ответ / правда)| / 1,5), минус стоимость открытых подсказок. Попадание в два раза даёт около 4000, промах в десять раз около 1700.</li>
+          <li>За число: 5000 × (1 − |log₁₀(ответ / правда)| / 1,5). Попадание в два раза даёт около 4000, промах в десять раз около 1700.</li>
           <li>Бонус за оценку: 1000 × (1 − |разница процентов| / 30).</li>
           <li>Ссылка с сидом воспроизводит тот же набор игр: отправь её другу и сравни очки.</li>
         </ul>

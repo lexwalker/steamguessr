@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { HINTS, fmt } from '../lib/scoring.js';
+import { fmt } from '../lib/scoring.js';
 import { movieUrls } from '../lib/data.js';
 import Lightbox from './Lightbox.jsx';
 
@@ -16,15 +16,6 @@ function ownersText(s) {
   return nums.length === 2 ? `${fmt(nums[0])} – ${fmt(nums[1])}` : s;
 }
 
-function LockIcon() {
-  return (
-    <svg className="hint-lock" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <rect x="4" y="11" width="16" height="10" rx="2"></rect>
-      <path d="M8 11V7a4 4 0 0 1 8 0v4"></path>
-    </svg>
-  );
-}
-
 function PlayIcon({ size = 22 }) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7z"></path></svg>
@@ -39,27 +30,10 @@ function ZoomIcon() {
   );
 }
 
-function HintBlock({ hint, unlocked, onHint, children }) {
-  if (unlocked) {
-    return (
-      <div className="hint open">
-        <div className="hint-label">{hint.label}</div>
-        <div className="hint-body">{children}</div>
-      </div>
-    );
-  }
-  return (
-    <button type="button" className="hint locked" onClick={() => onHint(hint.id)} title={`Открыть за ${fmt(hint.cost)} очков`}>
-      <LockIcon />
-      <span className="hint-name">{hint.label}</span>
-      <span className="hint-cost">−{fmt(hint.cost)}</span>
-    </button>
-  );
-}
-
-// The game card: media + hints on the left, title + description + whatever the
-// screen puts there (guess panel, verdict) on the right.
-export default function GameCard({ game, hints, onHint, revealed, startWith = 'trailer', children }) {
+// The game card: media and facts on the left, title + description + whatever the
+// screen puts there (guess panel, verdict) on the right. Everything Steam shows is
+// visible from the start; only the SteamSpy owners estimate waits for the reveal.
+export default function GameCard({ game, revealed, startWith = 'trailer', children }) {
   const [videoFailed, setVideoFailed] = useState(false);
   const items = useMemo(() => {
     const list = [];
@@ -72,8 +46,6 @@ export default function GameCard({ game, hints, onHint, revealed, startWith = 't
 
   const [active, setActive] = useState(() => (startWith === 'image' && movieUrls(game.movie) ? 1 : 0));
   const [lightbox, setLightbox] = useState(-1);
-  const unlocked = (id) => revealed || hints.includes(id);
-  const [tags, details, press] = HINTS;
   const cur = items[Math.min(active, items.length - 1)];
 
   return (
@@ -112,38 +84,42 @@ export default function GameCard({ game, hints, onHint, revealed, startWith = 't
       </div>
 
       <div className="hints">
-        <div className="hints-label">{revealed ? 'Об игре' : 'Подсказки · открываются за очки'}</div>
-        <HintBlock hint={tags} unlocked={unlocked('tags')} onHint={onHint}>
-          <div className="tags">
-            {game.tags.map((t) => <span key={t} className="tag">{t}</span>)}
-            {game.tags.length === 0 && game.genres.map((t) => <span key={t} className="tag">{t}</span>)}
-          </div>
-        </HintBlock>
-
-        <HintBlock hint={details} unlocked={unlocked('details')} onHint={onHint}>
-          <dl className="kv">
-            <dt>Дата выхода</dt><dd>{game.date || (game.year ?? '—')}</dd>
-            <dt>Цена</dt><dd>{priceText(game)}</dd>
-            <dt>Разработчик</dt><dd>{game.dev.join(', ') || '—'}</dd>
-            <dt>Платформы</dt><dd>{game.platforms.map((p) => PLATFORM_LABEL[p] || p).join(', ') || '—'}</dd>
-          </dl>
-        </HintBlock>
-
-        <HintBlock hint={press} unlocked={unlocked('press')} onHint={onHint}>
-          <dl className="kv">
-            <dt>Metacritic</dt><dd>{game.meta ?? 'нет оценки'}</dd>
-            <dt>DLC</dt><dd>{game.dlc}</dd>
-            <dt>Достижений</dt><dd>{game.ach}</dd>
-          </dl>
-        </HintBlock>
-
-        {revealed && (
-          <div className="hint open">
-            <div className="hint-label">Издатель</div>
-            <div className="hint-body">
-              {game.pub.join(', ') || '—'}
-              {game.owners ? ` · владельцев по SteamSpy: ${ownersText(game.owners)}` : ''}
+        <div className="hints-label">Об игре</div>
+        <div className="hint open">
+          <div className="hint-label">Теги и жанры</div>
+          <div className="hint-body">
+            <div className="tags">
+              {game.tags.map((t) => <span key={t} className="tag">{t}</span>)}
+              {game.tags.length === 0 && game.genres.map((t) => <span key={t} className="tag">{t}</span>)}
             </div>
+          </div>
+        </div>
+        <div className="hint open">
+          <div className="hint-label">Выход, цена, разработчик</div>
+          <div className="hint-body">
+            <dl className="kv">
+              <dt>Дата выхода</dt><dd>{game.date || (game.year ?? '—')}</dd>
+              <dt>Цена</dt><dd>{priceText(game)}</dd>
+              <dt>Разработчик</dt><dd>{game.dev.join(', ') || '—'}</dd>
+              <dt>Издатель</dt><dd>{game.pub.join(', ') || '—'}</dd>
+              <dt>Платформы</dt><dd>{game.platforms.map((p) => PLATFORM_LABEL[p] || p).join(', ') || '—'}</dd>
+            </dl>
+          </div>
+        </div>
+        <div className="hint open">
+          <div className="hint-label">Metacritic, DLC, достижения</div>
+          <div className="hint-body">
+            <dl className="kv">
+              <dt>Metacritic</dt><dd>{game.meta ?? 'нет оценки'}</dd>
+              <dt>DLC</dt><dd>{game.dlc}</dd>
+              <dt>Достижений</dt><dd>{game.ach}</dd>
+            </dl>
+          </div>
+        </div>
+        {revealed && game.owners && (
+          <div className="hint open">
+            <div className="hint-label">Владельцев по оценке SteamSpy</div>
+            <div className="hint-body">{ownersText(game.owners)}</div>
           </div>
         )}
       </div>

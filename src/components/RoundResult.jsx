@@ -78,7 +78,7 @@ export function ReviewLine({ game }) {
 }
 
 // The personal verdict: how close you were, in one glance. Used by classic and multiplayer.
-export function Verdict({ game, guess, pct, main, bonus, max, hints, rankLine, noAnswer }) {
+export function Verdict({ game, guess, pct, main, bonus, rankLine, noAnswer }) {
   const grade = noAnswer ? 'bad' : gradeOf(main);
   const shown = useCountUp(noAnswer ? 0 : main);
   const shownBonus = useCountUp(noAnswer ? 0 : bonus || 0, 1100);
@@ -110,7 +110,6 @@ export function Verdict({ game, guess, pct, main, bonus, max, hints, rankLine, n
       </div>
 
       <ReviewLine game={game} />
-      {hints && hints.length > 0 && <div className="dim">Потолок раунда {fmt(max)} из-за открытых подсказок.</div>}
     </div>
   );
 }
@@ -118,7 +117,7 @@ export function Verdict({ game, guess, pct, main, bonus, max, hints, rankLine, n
 export default function RoundResult({ game, result, isLast, onNext }) {
   return (
     <section className="result">
-      <Verdict game={game} guess={result.guess} pct={result.pct} main={result.main} bonus={result.bonus} max={result.max} hints={result.hints} />
+      <Verdict game={game} guess={result.guess} pct={result.pct} main={result.main} bonus={result.bonus} />
       <ScaleBar guesses={[{ label: 'ты', value: result.guess }]} actual={game.reviews} compact />
       <div className="result-actions">
         <a className="btn" href={steamUrl(game)} target="_blank" rel="noreferrer">Открыть в Steam</a>

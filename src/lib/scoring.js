@@ -119,16 +119,6 @@ export function poolLabel(id) {
   return p ? p.label : id;
 }
 
-export const HINTS = [
-  { id: 'tags', label: 'Теги и жанры', cost: 500 },
-  { id: 'details', label: 'Год, цена, разработчик', cost: 750 },
-  { id: 'press', label: 'Metacritic, DLC, достижения', cost: 1000 },
-];
-
-export function hintCost(ids) {
-  return HINTS.filter((h) => ids.includes(h.id)).reduce((s, h) => s + h.cost, 0);
-}
-
 // One round, fully scored: the review-count guess plus the positive-share bonus.
 export function scoreRound(game, guess, pct, maxScore) {
   const main = roundScore(guess, game.reviews, maxScore);

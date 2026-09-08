@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { pickGames } from '../lib/data.js';
-import { ROUNDS, MAX_ROUND, fmt, hintCost, scoreRound, scoreEmoji, poolLabel } from '../lib/scoring.js';
+import { ROUNDS, MAX_ROUND, fmt, scoreRound, scoreEmoji, poolLabel } from '../lib/scoring.js';
 import { loadStats, updateStats, bumpStreak } from '../lib/storage.js';
 import GameCard from './GameCard.jsx';
 import GuessSlider from './GuessSlider.jsx';
@@ -17,16 +17,14 @@ export default function ClassicGame({ data, seed, pool, daily, onExit, onReplay 
 
   const [results, setResults] = useState(restored || []);
   const [phase, setPhase] = useState(restored ? 'summary' : 'play'); // play | reveal | summary
-  const [hints, setHints] = useState([]);
 
   const round = phase === 'summary' ? games.length : Math.min(results.length - (phase === 'reveal' ? 1 : 0), games.length - 1);
   const game = games[round];
   const total = results.reduce((s, r) => s + r.score, 0);
-  const maxScore = MAX_ROUND - hintCost(hints);
 
   function submit({ value, pct }) {
-    const scored = scoreRound(game, value, pct, maxScore);
-    setResults([...results, { id: game.id, guess: value, pct, ...scored, hints, max: maxScore }]);
+    const scored = scoreRound(game, value, pct, MAX_ROUND);
+    setResults([...results, { id: game.id, guess: value, pct, ...scored }]);
     setPhase('reveal');
   }
 
@@ -43,7 +41,6 @@ export default function ClassicGame({ data, seed, pool, daily, onExit, onReplay 
       setPhase('summary');
       return;
     }
-    setHints([]);
     setPhase('play');
   }
 
@@ -71,9 +68,9 @@ export default function ClassicGame({ data, seed, pool, daily, onExit, onReplay 
         <button className="link" onClick={onExit}>Выйти</button>
       </div>
       {round === 0 && phase === 'play' && <HowTo />}
-      <GameCard key={'card-' + game.id} game={game} hints={hints} onHint={(id) => setHints([...hints, id])} revealed={phase === 'reveal'}>
+      <GameCard key={'card-' + game.id} game={game} revealed={phase === 'reveal'}>
         {phase === 'play'
-          ? <GuessSlider key={'guess-' + game.id} maxScore={maxScore} onSubmit={submit} />
+          ? <GuessSlider key={'guess-' + game.id} maxScore={MAX_ROUND} onSubmit={submit} />
           : <RoundResult key={'result-' + game.id} game={game} result={results[results.length - 1]} isLast={results.length >= games.length} onNext={next} />}
       </GameCard>
     </div>
