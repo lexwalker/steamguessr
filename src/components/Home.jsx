@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { POOLS, fmt, ROUND_TOTAL, MAX_ROUND, MAX_BONUS, ROUNDS, daysWord } from '../lib/scoring.js';
+import { POOLS, fmt, ROUND_TOTAL, ROUNDS, daysWord } from '../lib/scoring.js';
 import { loadStats, currentStreak } from '../lib/storage.js';
 import { poolGames } from '../lib/data.js';
 import { mulberry32, randomSeed, seededShuffle, todayKey } from '../lib/rng.js';
@@ -35,15 +35,16 @@ function IconPeople() {
 
 export default function Home({ data, onStart }) {
   const [pool, setPool] = useState('mix');
+  const [code, setCode] = useState('');
   const stats = loadStats();
   const today = todayKey();
   const dailyDone = stats.daily[today];
   const streak = currentStreak(stats, today);
 
-  // decorative strip of capsules, reshuffled on every visit
+  // capsules drifting behind the title, reshuffled on every visit
   const band = useMemo(() => {
     const known = data.games.filter((g) => g.reviews >= 5000);
-    return seededShuffle(known.length >= 12 ? known : data.games, mulberry32(Date.now() % 100000)).slice(0, 12);
+    return seededShuffle(known.length >= 14 ? known : data.games, mulberry32(Date.now() % 100000)).slice(0, 14);
   }, [data]);
 
   const counts = useMemo(() => Object.fromEntries(POOLS.map((p) => [p.id, poolGames(data.games, p.id).length])), [data]);
@@ -58,69 +59,85 @@ export default function Home({ data, onStart }) {
       {p.label} <span className="chip-n">{counts[p.id]}</span>
     </button>
   );
+  const startClassic = () => onStart({ name: 'classic', pool, seed: randomSeed() });
 
   return (
     <div className="home">
-      <section className="hero">
-        <h1>Угадай, сколько отзывов у игры в Steam</h1>
-        <p>Случайная игра, ползунок и пять раундов. За число отзывов до {fmt(MAX_ROUND)} очков, попадание в два раза даёт ~4000, промах в десять раз около 1700. Ещё до {fmt(MAX_BONUS)} за процент положительных.</p>
-      </section>
-
-      <div className="band" aria-hidden="true">
-        <div className="band-row">
-          {[...band, ...band].map((g, i) => <img key={g.id + '-' + i} src={g.img} alt="" loading="lazy" />)}
+      <section className="hero-wrap">
+        <div className="hero-bg" aria-hidden="true">
+          <div className="band-row">
+            {[...band, ...band].map((g, i) => <img key={g.id + '-' + i} src={g.img} alt="" />)}
+          </div>
         </div>
-      </div>
+        <div className="hero">
+          <h1>Угадай, сколько отзывов у игры в Steam</h1>
+          <p>Случайная игра, ползунок и пять раундов. Чем ближе к правде, тем больше очков.</p>
+          <div className="hero-actions">
+            <button className="btn primary big" onClick={startClassic}>Играть</button>
+            <button className="btn big" onClick={() => onStart({ name: 'mp', lobby: null })}>Играть вместе</button>
+          </div>
+        </div>
+      </section>
 
       <div className="modes">
-        <section className="mode wide">
-          <div className="mode-head"><IconTarget /><h2>Классика</h2></div>
-          <p>{ROUNDS} раундов, максимум {fmt(ROUNDS * ROUND_TOTAL)} очков. Подсказки открываются за часть очков раунда.</p>
+        <section className="mode">
+          <div className="mode-head"><span className="mode-icon"><IconTarget /></span><h2>Классика</h2></div>
+          <p>{ROUNDS} раундов, до {fmt(ROUNDS * ROUND_TOTAL)} очков. Подсказки открываются за часть очков раунда.</p>
           <div className="pool-groups">
             <div className="chips">{POOLS.filter((p) => !p.byTag).map(chip)}</div>
-            <div className="pool-group-label">По жанру</div>
             <div className="chips">{POOLS.filter((p) => p.byTag).map(chip)}</div>
           </div>
-          <button className="btn primary" onClick={() => onStart({ name: 'classic', pool, seed: randomSeed() })}>Играть</button>
-          {stats.classicGames > 0 && (
-            <div className="mode-stats">Лучший результат: {fmt(stats.classicBest)} · сыграно партий: {stats.classicGames}</div>
-          )}
-        </section>
-
-        <section className="mode">
-          <div className="mode-head"><IconPeople /><h2>Вместе</h2></div>
-          <p>Лобби по коду на 2–8 игроков, общий таймер, одинаковые игры. После каждого раунда сравнение ответов с правдой.</p>
-          <button className="btn primary" onClick={() => onStart({ name: 'mp', lobby: null })}>Играть вместе</button>
-        </section>
-
-        <section className="mode">
-          <div className="mode-head"><IconCalendar /><h2>Дейли</h2></div>
-          <p>Один набор из пяти игр на всех на сегодня, {today.split('-').reverse().join('.')}. Сравнивай результат с друзьями.</p>
-          <button className="btn primary" onClick={() => onStart({ name: 'classic', daily: true, pool: 'mix', seed: 'daily-' + today })}>
-            {dailyDone ? 'Посмотреть результат' : 'Играть дейли'}
-          </button>
-          <div className="mode-stats">
-            {dailyDone && <>Сегодня: {fmt(dailyDone.score)} очков {dailyDone.grid}<br /></>}
-            {streak > 0 ? <>🔥 {streak} {daysWord(streak)} подряд{stats.streak.best > streak ? ` · рекорд ${stats.streak.best}` : ''}</> : 'Играй каждый день, чтобы набрать серию.'}
+          <div className="mode-actions">
+            <button className="btn primary" onClick={startClassic}>Играть</button>
+            {stats.classicGames > 0 && <span className="mode-stats">Лучший: {fmt(stats.classicBest)} · партий: {stats.classicGames}</span>}
           </div>
         </section>
 
         <section className="mode">
-          <div className="mode-head"><IconScales /><h2>Больше / Меньше</h2></div>
-          <p>Две игры: у правой отзывов больше или меньше, чем у левой? Считаем серию.</p>
-          <button className="btn primary" onClick={() => onStart({ name: 'hilo', seed: randomSeed() })}>Играть</button>
-          {stats.hiloBest > 0 && <div className="mode-stats">Рекордная серия: {stats.hiloBest}</div>}
+          <div className="mode-head"><span className="mode-icon"><IconPeople /></span><h2>Вместе</h2></div>
+          <p>Лобби по коду на 2–8 игроков. Одна игра на всех, общий таймер, после каждого раунда сравнение ответов с правдой.</p>
+          <form className="mp-join" onSubmit={(e) => { e.preventDefault(); if (code.length === 5) onStart({ name: 'mp', lobby: code }); }}>
+            <input className="typed code" maxLength={5} placeholder="КОД" value={code} onChange={(e) => setCode(e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, ''))} aria-label="Код лобби" />
+            <button type="submit" className="btn" disabled={code.length !== 5}>Войти по коду</button>
+          </form>
+          <div className="mode-actions">
+            <button className="btn primary" onClick={() => onStart({ name: 'mp', lobby: null })}>Создать лобби</button>
+          </div>
+        </section>
+
+        <section className="mode">
+          <div className="mode-head"><span className="mode-icon"><IconCalendar /></span><h2>Дейли</h2></div>
+          <p>Один набор из пяти игр на всех на сегодня, {today.split('-').reverse().join('.')}. Сравни результат с друзьями.</p>
+          <div className="mode-actions">
+            <button className="btn primary" onClick={() => onStart({ name: 'classic', daily: true, pool: 'mix', seed: 'daily-' + today })}>
+              {dailyDone ? 'Посмотреть результат' : 'Играть дейли'}
+            </button>
+            <span className="mode-stats">
+              {dailyDone ? <>{fmt(dailyDone.score)} {dailyDone.grid} · </> : null}
+              {streak > 0 ? <>🔥 {streak} {daysWord(streak)} подряд</> : 'серия дней пока 0'}
+            </span>
+          </div>
+        </section>
+
+        <section className="mode">
+          <div className="mode-head"><span className="mode-icon"><IconScales /></span><h2>Больше / Меньше</h2></div>
+          <p>У правой игры отзывов больше или меньше, чем у левой? Считаем серию верных ответов.</p>
+          <div className="mode-actions">
+            <button className="btn primary" onClick={() => onStart({ name: 'hilo', seed: randomSeed() })}>Играть</button>
+            {stats.hiloBest > 0 && <span className="mode-stats">Рекорд: {stats.hiloBest}</span>}
+          </div>
         </section>
       </div>
 
-      <section className="howto">
-        <h3>Как это работает</h3>
+      <details className="howto">
+        <summary>Как считаются очки</summary>
         <ul>
           <li>Загадывается число отзывов на всех языках, то же, что Steam показывает в строке «Все обзоры».</li>
+          <li>За число: 5000 × (1 − |log₁₀(ответ / правда)| / 1,5), минус стоимость открытых подсказок. Попадание в два раза даёт около 4000, промах в десять раз около 1700.</li>
+          <li>Бонус за оценку: 1000 × (1 − |разница процентов| / 30).</li>
           <li>Ссылка с сидом воспроизводит тот же набор игр: отправь её другу и сравни очки.</li>
-          <li>Очки за число: 5000 × (1 − |log₁₀(ответ / правда)| / 1,5), минус стоимость открытых подсказок. Бонус за процент: 1000 × (1 − |разница| / 30).</li>
         </ul>
-      </section>
+      </details>
     </div>
   );
 }

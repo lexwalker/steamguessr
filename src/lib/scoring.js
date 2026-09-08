@@ -63,6 +63,18 @@ export function positivePct(g) {
   return g.reviews ? Math.round((g.pos / g.reviews) * 100) : 0;
 }
 
+// Steam's rating label for a share of positive reviews (count thresholds ignored).
+export function ratingTier(pct) {
+  if (pct >= 95) return { name: 'Крайне положительные', tone: 'positive' };
+  if (pct >= 80) return { name: 'Очень положительные', tone: 'positive' };
+  if (pct >= 70) return { name: 'В основном положительные', tone: 'positive' };
+  if (pct >= 40) return { name: 'Смешанные', tone: 'mixed' };
+  if (pct >= 20) return { name: 'В основном отрицательные', tone: 'negative' };
+  return { name: 'Крайне отрицательные', tone: 'negative' };
+}
+
+export const TONE_COLORS = { positive: '#66c0f4', mixed: '#b9a074', negative: '#a34c25' };
+
 export function reviewsWord(n) {
   const m10 = n % 10;
   const m100 = n % 100;
