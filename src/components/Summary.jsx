@@ -3,6 +3,8 @@ import { scoreEmoji, poolLabel, ROUND_TOTAL } from '../lib/scoring.js';
 import { fmt, fmtDate, t } from '../lib/i18n.js';
 import { steamUrl } from '../lib/data.js';
 import { loadStats, currentStreak } from '../lib/storage.js';
+import { dailyNumber, levelInfo } from '../lib/progress.js';
+import { GradeBadge } from './Profile.jsx';
 
 function copy(text) {
   try {
@@ -12,15 +14,23 @@ function copy(text) {
   }
 }
 
-export default function Summary({ games, results, total, daily, dateKey, pool, onExit, onReplay }) {
+export default function Summary({ games, results, total, daily, weekly, dateKey, weekKey, pool, finish, onExit, onReplay }) {
   const [copied, setCopied] = useState('');
   const max = games.length * ROUND_TOTAL;
   const grid = results.map((r) => scoreEmoji(r.main ?? r.score)).join('');
   const link = location.origin + location.pathname + location.search;
-  const title = daily ? t('summary.daily', { date: fmtDate(dateKey) }) : t('summary.classic', { pool: poolLabel(pool) });
-  const streak = daily ? currentStreak(loadStats(), dateKey) : 0;
-  const streakLine = streak > 1 ? `\n${t('summary.streak', { n: streak })}` : '';
-  const shareText = `SteamGuessr · ${title}\n${fmt(total)} / ${fmt(max)}\n${grid}${streakLine}\n${link}`;
+  const title = daily
+    ? `${t('summary.dailyN', { n: dailyNumber(dateKey) })} · ${fmtDate(dateKey)}`
+    : weekly ? t('summary.weekly', { w: weekKey }) : t('summary.classic', { pool: poolLabel(pool) });
+  const stats = loadStats();
+  const streak = daily ? currentStreak(stats, dateKey) : 0;
+  const info = levelInfo(stats.xp);
+  const grade = finish && finish.grade;
+  const lines = [`SteamGuessr · ${title}${grade ? ` · ${grade}` : ''}`, `${fmt(total)} / ${fmt(max)}`, grid];
+  const tail = [streak > 0 ? t('summary.streak', { n: streak }) : '', `${t('xp.level', { n: info.level })} · ${info.rank}`].filter(Boolean).join(' · ');
+  if (tail) lines.push(tail);
+  lines.push(link);
+  const shareText = lines.join('\n');
 
   function share(kind, text) {
     copy(text).then(() => setCopied(kind)).catch(() => setCopied('fail'));
@@ -31,8 +41,10 @@ export default function Summary({ games, results, total, daily, dateKey, pool, o
     <section className="summary">
       <h2>{title}</h2>
       <div className="summary-total">
+        {grade && <GradeBadge grade={grade} />}
         <span className="summary-points">{fmt(total)}</span>
         <span className="summary-max">{t('summary.of', { max: fmt(max) })}</span>
+        {finish && finish.xp > 0 && <span className="summary-xp">{t('xp.gained', { n: fmt(finish.xp) })}</span>}
         {daily && streak > 0 && <span className="summary-streak">{t('summary.streak', { n: streak })}</span>}
         <span className="summary-grid">{grid}</span>
       </div>
@@ -63,14 +75,16 @@ export default function Summary({ games, results, total, daily, dateKey, pool, o
         <button className="btn" onClick={() => share('result', shareText)}>
           {copied === 'result' ? t('summary.copied') : t('summary.copy')}
         </button>
-        <button className="btn" onClick={() => share('link', link)}>
-          {copied === 'link' ? t('summary.copied') : daily ? t('summary.dailyLink') : t('summary.duelLink')}
-        </button>
+        {!weekly && (
+          <button className="btn" onClick={() => share('link', link)}>
+            {copied === 'link' ? t('summary.copied') : daily ? t('summary.dailyLink') : t('summary.duelLink')}
+          </button>
+        )}
         {copied === 'fail' && <span className="note">{t('summary.clipboardFail')}</span>}
       </div>
 
       <div className="summary-actions">
-        {!daily && <button className="btn primary big" onClick={onReplay}>{t('summary.again')}</button>}
+        {!daily && !weekly && <button className="btn primary big" onClick={onReplay}>{t('summary.again')}</button>}
         {daily && <span className="note">{t('summary.tomorrow')}</span>}
         <button className="btn" onClick={onExit}>{t('summary.home')}</button>
       </div>

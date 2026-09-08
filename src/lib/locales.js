@@ -1,3 +1,5 @@
+import PROGRESS from './locales-progress.js';
+
 // Interface strings. Keys are flat; plural entries are objects keyed by CLDR category and use {n}.
 
 const en = {
@@ -1021,4 +1023,5 @@ const ko = {
   'card.noMeta': '점수 없음', 'card.owners': 'SteamSpy 추정 보유자 수', 'card.free': '무료', 'card.notForSale': '판매 중단',
 };
 
-export default { en, ru, de, fr, es, pt, pl, tr, zh, ja, ko };
+const BASE = { en, ru, de, fr, es, pt, pl, tr, zh, ja, ko };
+export default Object.fromEntries(Object.entries(BASE).map(([code, dict]) => [code, { ...dict, ...(PROGRESS[code] || {}) }]));

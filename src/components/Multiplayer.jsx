@@ -9,6 +9,10 @@ import GameCard from './GameCard.jsx';
 import GuessSlider from './GuessSlider.jsx';
 import { ScaleBar, Verdict } from './RoundResult.jsx';
 import HowTo from './HowTo.jsx';
+import TimerBar from './TimerBar.jsx';
+import { loadStats, updateStats, addXp } from '../lib/storage.js';
+import { recordRound, toast, unlock, xpFor } from '../lib/progress.js';
+import { todayKey } from '../lib/rng.js';
 
 const ROUND_OPTIONS = [3, 5, 10];
 const TIMER_OPTIONS = [10, 15, 20, 30];
@@ -61,22 +65,6 @@ function Entry({ initialCode, onCreate, onJoin }) {
 }
 
 // ----------------------------------------------------------------- pieces
-
-function TimerBar({ deadline, offset, total }) {
-  const [left, setLeft] = useState(() => Math.max(0, deadline - offset - Date.now()));
-  useEffect(() => {
-    const id = setInterval(() => setLeft(Math.max(0, deadline - offset - Date.now())), 250);
-    return () => clearInterval(id);
-  }, [deadline, offset]);
-  const secs = Math.ceil(left / 1000);
-  const frac = total ? Math.min(1, left / (total * 1000)) : 1;
-  return (
-    <div className={'timer' + (secs <= 5 ? ' low' : '')}>
-      <div className="timer-track"><div className="timer-fill" style={{ width: `${frac * 100}%` }}></div></div>
-      <span className="timer-text">{t('mp.seconds', { n: secs })}</span>
-    </div>
-  );
-}
 
 function Countdown({ at, offset }) {
   const [left, setLeft] = useState(() => Math.max(0, at - offset - Date.now()));
@@ -387,6 +375,40 @@ function Room({ data, code, me, isHost, onExit }) {
   }, [code, isHost, me.id]);
 
   const games = useMemo(() => (state && state.seed ? pickGames(data.games, state.settings.pool, state.seed, state.settings.rounds) : []), [data, state && state.seed, state && state.settings.pool, state && state.settings.rounds]);
+
+  // Progression: every revealed round of mine feeds the calibration, the final screen pays XP
+  // once per game (keyed by the game seed) and counts wins.
+  const seen = useRef(new Set());
+  useEffect(() => {
+    if (!state || !state.seed) return;
+    const date = todayKey();
+    if (state.phase === 'reveal') {
+      const r = state.results[state.results.length - 1];
+      const key = state.seed + ':' + r.round;
+      const mine = r.guesses[me.id];
+      if (mine && !seen.current.has(key)) {
+        seen.current.add(key);
+        const g = data.games.find((x) => x.id === r.gameId);
+        updateStats((s) => recordRound(s, { guess: mine.value, game: g, pool: state.settings.pool, mode: 'mp', date }));
+      }
+    }
+    if (state.phase === 'final' && state.players[me.id] && !loadStats().mp.awarded[state.seed]) {
+      const scores = state.order.map((id) => state.players[id].score);
+      const mine = state.players[me.id].score;
+      const won = state.order.length > 1 && mine >= Math.max(...scores);
+      const unlocked = [];
+      updateStats((s) => {
+        s.mp.awarded[state.seed] = 1;
+        const keys = Object.keys(s.mp.awarded);
+        if (keys.length > 50) for (const k of keys.slice(0, keys.length - 50)) delete s.mp.awarded[k];
+        s.mp.games += 1;
+        if (won) s.mp.wins += 1;
+        addXp(s, xpFor('mp', mine, won));
+        if (s.mp.wins >= 3 && unlock(s, 'mp_wins3', date)) unlocked.push('mp_wins3');
+      });
+      for (const id of unlocked) toast({ type: 'ach', id });
+    }
+  }, [state && state.phase, state && state.seed, state && state.results.length]);
 
   const submit = useCallback((g, maxScore) => {
     if (!state || state.phase !== 'round') return;
