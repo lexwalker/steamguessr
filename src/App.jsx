@@ -1,10 +1,12 @@
 import { useEffect, useState } from 'react';
 import { loadGames } from './lib/data.js';
 import { randomSeed, todayKey } from './lib/rng.js';
+import { fmt, t, useLang } from './lib/i18n.js';
 import Home from './components/Home.jsx';
 import ClassicGame from './components/ClassicGame.jsx';
 import HigherLower from './components/HigherLower.jsx';
 import Multiplayer from './components/Multiplayer.jsx';
+import LangSwitch from './components/LangSwitch.jsx';
 
 function screenFromUrl() {
   const p = new URLSearchParams(location.search);
@@ -28,6 +30,8 @@ export default function App() {
   const [data, setData] = useState(null);
   const [error, setError] = useState(null);
   const [screen, setScreenState] = useState(screenFromUrl);
+  // The whole tree re-renders on a language change; every string below goes through t().
+  useLang();
 
   useEffect(() => {
     loadGames().then(setData).catch(setError);
@@ -48,13 +52,13 @@ export default function App() {
   if (error) {
     body = (
       <div className="notice">
-        <h2>Датасет не найден</h2>
-        <p>Собери его командой ниже, она положит файл в <code>public/data/games.json</code>. Первые игры появятся через пару минут, дальше файл дописывается по ходу сбора.</p>
+        <h2>{t('app.noDataTitle')}</h2>
+        <p>{t('app.noDataText')}</p>
         <pre>npm run dataset</pre>
       </div>
     );
   } else if (!data) {
-    body = <div className="notice">Загружаю датасет…</div>;
+    body = <div className="notice">{t('app.loading')}</div>;
   } else if (screen.name === 'classic') {
     body = (
       <ClassicGame
@@ -96,12 +100,11 @@ export default function App() {
         <button className="logo" onClick={() => go({ name: 'home' })}>
           <span className="logo-mark">?</span> SteamGuessr
         </button>
-        {data && <span className="header-meta">{data.games.length} игр · датасет {data.version}</span>}
+        {data && <span className="header-meta">{t('app.meta', { n: fmt(data.games.length), v: data.version })}</span>}
+        <LangSwitch />
       </header>
       <main className="main">{body}</main>
-      <footer className="footer">
-        Игра для своих. Числа берутся из открытых данных Steam, продажи и вишлисты Steam не публикует, поэтому угадываем отзывы.
-      </footer>
+      <footer className="footer">{t('app.footer')}</footer>
     </div>
   );
 }

@@ -1,3 +1,4 @@
+import { t } from './i18n.js';
 import { pickGames } from './data.js';
 import { randomSeed } from './rng.js';
 import { MAX_ROUND, scoreRound } from './scoring.js';
@@ -161,7 +162,7 @@ export function createHost({ code, me, data, publish, onState }) {
     seen[msg.from] = Date.now();
     switch (msg.t) {
       case 'join': {
-        const name = String(msg.name || '').slice(0, 24) || 'Игрок';
+        const name = String(msg.name || '').slice(0, 24) || t('mp.hPlayer');
         if (player(msg.from)) {
           player(msg.from).online = true;
           player(msg.from).name = name;

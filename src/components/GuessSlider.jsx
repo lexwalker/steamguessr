@@ -1,24 +1,24 @@
 import { useEffect, useRef, useState } from 'react';
-import { fmt, sliderToValue, valueToSlider, reviewsWord, ratingTier, TONE_COLORS, MAX_BONUS } from '../lib/scoring.js';
+import { sliderToValue, valueToSlider, TONE_COLORS, MAX_BONUS } from '../lib/scoring.js';
+import { fmt, fmtCompact, ratingTier, t } from '../lib/i18n.js';
 
 export const MARKS = [10, 100, 1000, 10000, 100000, 1000000];
 
+// "10K", "1M" in English, "10 тыс.", "1 млн" in Russian, "1万", "100万" in Chinese and Japanese.
 export function markLabel(m) {
-  if (m >= 1000000) return m / 1000000 + ' млн';
-  if (m >= 1000) return m / 1000 + ' тыс';
-  return String(m);
+  return fmtCompact(m);
 }
 
 // The answer panel: two clearly separate questions (review count, Steam rating)
 // and one big button. `deadline` (ms, local clock) makes the panel submit itself
 // when time runs out.
 export default function GuessSlider({ maxScore, onSubmit, deadline, showBonus = true }) {
-  const [t, setT] = useState(valueToSlider(1000));
+  const [pos0, setPos0] = useState(valueToSlider(1000));
   const [typed, setTyped] = useState('');
   const [pct, setPct] = useState(80);
 
-  const value = typed !== '' ? Number(typed.replace(/\D/g, '')) || 0 : sliderToValue(t);
-  const pos = typed !== '' ? valueToSlider(value) : t;
+  const value = typed !== '' ? Number(typed.replace(/\D/g, '')) || 0 : sliderToValue(pos0);
+  const pos = typed !== '' ? valueToSlider(value) : pos0;
   const tier = ratingTier(pct);
 
   const latest = useRef({ value, pct });
@@ -41,12 +41,12 @@ export default function GuessSlider({ maxScore, onSubmit, deadline, showBonus = 
       <div className="q q1">
         <div className="q-head">
           <span className="q-step">1</span>
-          <span className="q-title">Сколько отзывов у игры в Steam?</span>
-          <span className="q-max">до {fmt(maxScore)} очков</span>
+          <span className="q-title">{t('guess.q1')}</span>
+          <span className="q-max">{t('guess.upTo', { n: fmt(maxScore) })}</span>
         </div>
         <div className="guess-value">
           <span className="guess-num">{fmt(value)}</span>
-          <span className="guess-word">{reviewsWord(value)}</span>
+          <span className="guess-word">{t('reviews', { n: value })}</span>
         </div>
         <div className="slider-wrap">
           <input
@@ -56,14 +56,14 @@ export default function GuessSlider({ maxScore, onSubmit, deadline, showBonus = 
             max="1000"
             value={Math.round(pos * 1000)}
             style={{ '--fill': `${pos * 100}%` }}
-            onChange={(e) => { setTyped(''); setT(Number(e.target.value) / 1000); }}
+            onChange={(e) => { setTyped(''); setPos0(Number(e.target.value) / 1000); }}
           />
           <div className="ticks" aria-hidden="true">
             {MARKS.map((m) => <span key={m} className="tick" style={{ left: `${valueToSlider(m) * 100}%` }}></span>)}
           </div>
           <div className="marks">
             {MARKS.map((m) => (
-              <button key={m} type="button" className="mark" style={{ left: `${valueToSlider(m) * 100}%` }} onClick={() => { setTyped(''); setT(valueToSlider(m)); }}>
+              <button key={m} type="button" className="mark" style={{ left: `${valueToSlider(m) * 100}%` }} onClick={() => { setTyped(''); setPos0(valueToSlider(m)); }}>
                 {markLabel(m)}
               </button>
             ))}
@@ -72,7 +72,7 @@ export default function GuessSlider({ maxScore, onSubmit, deadline, showBonus = 
         <input
           className="typed"
           inputMode="numeric"
-          placeholder="или введи число отзывов"
+          placeholder={t('guess.typed')}
           value={typed}
           onChange={(e) => setTyped(e.target.value)}
         />
@@ -82,11 +82,11 @@ export default function GuessSlider({ maxScore, onSubmit, deadline, showBonus = 
         <div className="q q2">
           <div className="q-head">
             <span className="q-step">2</span>
-            <span className="q-title">Какая у неё оценка?</span>
-            <span className="q-max">бонус до {fmt(MAX_BONUS)}</span>
+            <span className="q-title">{t('guess.q2')}</span>
+            <span className="q-max">{t('guess.bonusUpTo', { n: fmt(MAX_BONUS) })}</span>
           </div>
           <div className="pct-row">
-            <span className={'pct-tier ' + tier.tone}>{tier.name}</span>
+            <span className={'pct-tier ' + tier.tone}>{t('tier.' + tier.id)}</span>
             <span className="pct-value">{pct}%</span>
           </div>
           <input
@@ -98,11 +98,11 @@ export default function GuessSlider({ maxScore, onSubmit, deadline, showBonus = 
             style={{ '--fill': `${pct}%`, '--fill-color': TONE_COLORS[tier.tone] }}
             onChange={(e) => setPct(Number(e.target.value))}
           />
-          <div className="bonus-scale"><span>отрицательные</span><span>смешанные</span><span>положительные</span></div>
+          <div className="bonus-scale"><span>{t('guess.neg')}</span><span>{t('guess.mixed')}</span><span>{t('guess.pos')}</span></div>
         </div>
       )}
 
-      <button type="submit" className="btn primary big wide">Ответить</button>
+      <button type="submit" className="btn primary big wide">{t('guess.submit')}</button>
     </form>
   );
 }

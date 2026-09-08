@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
-import { fmt, ratioText, positivePct, valueToSlider, reviewsWord } from '../lib/scoring.js';
+import { positivePct, valueToSlider } from '../lib/scoring.js';
+import { fmt, ratioText, scoreLabel, t } from '../lib/i18n.js';
 import { steamUrl } from '../lib/data.js';
 import { MARKS, markLabel } from './GuessSlider.jsx';
 
@@ -33,8 +34,6 @@ export function gradeOf(main) {
   return main >= 4000 ? 'great' : main >= 2500 ? 'ok' : main >= 1000 ? 'meh' : 'bad';
 }
 
-const VERDICT = { great: 'Отлично!', ok: 'Неплохо', meh: 'Мимо, но рядом', bad: 'Совсем не туда' };
-
 // Log scale with one marker per guess and the truth marker sliding in from the first guess.
 export function ScaleBar({ guesses, actual, compact = false }) {
   const a = valueToSlider(actual) * 100;
@@ -58,7 +57,7 @@ export function ScaleBar({ guesses, actual, compact = false }) {
             <span>{g.label}</span>
           </div>
         ))}
-        <div className="scale-mark mark-truth" style={{ left: `${truthPos}%` }}><span>правда</span></div>
+        <div className="scale-mark mark-truth" style={{ left: `${truthPos}%` }}><span>{t('verdict.truth').toLowerCase()}</span></div>
       </div>
       <div className="scale-labels">
         {MARKS.map((m) => <span key={m} style={{ left: `${valueToSlider(m) * 100}%` }}>{markLabel(m)}</span>)}
@@ -70,8 +69,8 @@ export function ScaleBar({ guesses, actual, compact = false }) {
 export function ReviewLine({ game }) {
   return (
     <div className="review-line">
-      <span className="review-label">Все обзоры:</span>
-      <span className={'review-desc ' + reviewTone(game)}>{game.scoreDesc || (game.reviews ? '' : 'Отзывов пока нет')}</span>
+      <span className="review-label">{t('verdict.allReviews')}</span>
+      <span className={'review-desc ' + reviewTone(game)}>{scoreLabel(game)}</span>
       <span className="review-count">({fmt(game.reviews)})</span>
     </div>
   );
@@ -86,23 +85,23 @@ export function Verdict({ game, guess, pct, main, bonus, rankLine, noAnswer }) {
   return (
     <div className={'verdict ' + grade}>
       <div className="verdict-head">
-        <span className="verdict-badge">{noAnswer ? 'Без ответа' : VERDICT[grade]}</span>
+        <span className="verdict-badge">{noAnswer ? t('verdict.noAnswer') : t('verdict.' + grade)}</span>
         <span className="verdict-points">+{fmt(shown)}</span>
         {!noAnswer && typeof pct === 'number' && game.reviews > 0 && (
-          <span className={'verdict-bonus' + (bonus ? ' hit' : '')}>бонус +{fmt(shownBonus)}</span>
+          <span className={'verdict-bonus' + (bonus ? ' hit' : '')}>{t('verdict.bonus', { n: fmt(shownBonus) })}</span>
         )}
       </div>
       {rankLine && <div className="verdict-rank">{rankLine}</div>}
 
       <div className="truth-hero">
         <div className="truth-col">
-          <div className="truth-label">Правда</div>
+          <div className="truth-label">{t('verdict.truth')}</div>
           <div className="truth-num">{fmt(game.reviews)}</div>
-          <div className="truth-word">{reviewsWord(game.reviews)}{game.reviews > 0 ? ` · ${truthPct}% положительных` : ''}</div>
+          <div className="truth-word">{t('reviews', { n: game.reviews })}{game.reviews > 0 ? ` · ${t('verdict.positive', { p: truthPct })}` : ''}</div>
         </div>
         {!noAnswer && (
           <div className="truth-col yours">
-            <div className="truth-label">Твой ответ</div>
+            <div className="truth-label">{t('verdict.yours')}</div>
             <div className="truth-num">{fmt(guess)}</div>
             <div className="truth-word">{ratioText(guess, game.reviews)}{typeof pct === 'number' && game.reviews > 0 ? ` · ${pct}%` : ''}</div>
           </div>
@@ -118,10 +117,10 @@ export default function RoundResult({ game, result, isLast, onNext }) {
   return (
     <section className="result">
       <Verdict game={game} guess={result.guess} pct={result.pct} main={result.main} bonus={result.bonus} />
-      <ScaleBar guesses={[{ label: 'ты', value: result.guess }]} actual={game.reviews} compact />
+      <ScaleBar guesses={[{ label: t('mp.you'), value: result.guess }]} actual={game.reviews} compact />
       <div className="result-actions">
-        <a className="btn" href={steamUrl(game)} target="_blank" rel="noreferrer">Открыть в Steam</a>
-        <button className="btn primary big" onClick={onNext} autoFocus>{isLast ? 'Итоги' : 'Дальше'}</button>
+        <a className="btn" href={steamUrl(game)} target="_blank" rel="noreferrer">{t('verdict.openSteam')}</a>
+        <button className="btn primary big" onClick={onNext} autoFocus>{isLast ? t('verdict.results') : t('verdict.next')}</button>
       </div>
     </section>
   );

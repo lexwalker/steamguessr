@@ -1,3 +1,8 @@
+import { t } from './i18n.js';
+
+// Number and rating helpers live in i18n.js; re-exported so old imports keep working.
+export { fmt, ratioText, ratingTier } from './i18n.js';
+
 export const MAX_ROUND = 5000;   // for the review count
 export const MAX_BONUS = 1000;   // for the share of positive reviews
 export const ROUND_TOTAL = MAX_ROUND + MAX_BONUS;
@@ -34,24 +39,6 @@ export function valueToSlider(v) {
   return Math.min(1, Math.max(0, Math.log10(Math.max(1, v)) / LOG_MAX));
 }
 
-export function fmt(n) {
-  return String(Math.round(Number(n) || 0)).replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
-}
-
-export function ratioText(guess, actual) {
-  const g = guess + 1;
-  const a = actual + 1;
-  const r = g > a ? g / a : a / g;
-  if (r < 1.05) return 'почти в точку';
-  const dir = g > a ? 'больше' : 'меньше';
-  if (r < 10) return `в ${r.toFixed(1).replace('.', ',')} раза ${dir} правды`;
-  const n = Math.round(r);
-  const m10 = n % 10;
-  const m100 = n % 100;
-  const word = m10 >= 2 && m10 <= 4 && !(m100 >= 12 && m100 <= 14) ? 'раза' : 'раз';
-  return `в ${fmt(n)} ${word} ${dir} правды`;
-}
-
 export function scoreEmoji(s) {
   if (s >= 4000) return '🟩';
   if (s >= 2500) return '🟨';
@@ -63,60 +50,36 @@ export function positivePct(g) {
   return g.reviews ? Math.round((g.pos / g.reviews) * 100) : 0;
 }
 
-// Steam's rating label for a share of positive reviews (count thresholds ignored).
-export function ratingTier(pct) {
-  if (pct >= 95) return { name: 'Крайне положительные', tone: 'positive' };
-  if (pct >= 80) return { name: 'Очень положительные', tone: 'positive' };
-  if (pct >= 70) return { name: 'В основном положительные', tone: 'positive' };
-  if (pct >= 40) return { name: 'Смешанные', tone: 'mixed' };
-  if (pct >= 20) return { name: 'В основном отрицательные', tone: 'negative' };
-  return { name: 'Крайне отрицательные', tone: 'negative' };
-}
-
 export const TONE_COLORS = { positive: '#66c0f4', mixed: '#b9a074', negative: '#a34c25' };
 
-export function reviewsWord(n) {
-  const m10 = n % 10;
-  const m100 = n % 100;
-  if (m100 >= 11 && m100 <= 14) return 'отзывов';
-  if (m10 === 1) return 'отзыв';
-  if (m10 >= 2 && m10 <= 4) return 'отзыва';
-  return 'отзывов';
-}
-
-export function daysWord(n) {
-  const m10 = n % 10;
-  const m100 = n % 100;
-  if (m100 >= 11 && m100 <= 14) return 'дней';
-  if (m10 === 1) return 'день';
-  if (m10 >= 2 && m10 <= 4) return 'дня';
-  return 'дней';
-}
-
 const BASE_POOLS = [
-  { id: 'mix', label: 'Микс', hint: 'все игры датасета', test: () => true },
-  { id: 'hits', label: 'Хиты', hint: 'от 20 000 отзывов', test: (g) => g.reviews >= 20000 },
-  { id: 'indie', label: 'Середина', hint: 'от 300 до 20 000 отзывов', test: (g) => g.reviews >= 300 && g.reviews < 20000 },
-  { id: 'hard', label: 'Хардкор', hint: 'меньше 300 отзывов', test: (g) => g.reviews < 300 },
+  { id: 'mix', test: () => true },
+  { id: 'hits', test: (g) => g.reviews >= 20000 },
+  { id: 'indie', test: (g) => g.reviews >= 300 && g.reviews < 20000 },
+  { id: 'hard', test: (g) => g.reviews < 300 },
 ];
 
 const TAG_POOLS = [
-  { id: 'horror', label: 'Хорроры', tags: ['Horror', 'Survival Horror', 'Psychological Horror'] },
-  { id: 'strategy', label: 'Стратегии', tags: ['Strategy', 'RTS', 'Turn-Based Strategy', 'Grand Strategy', '4X', 'Tower Defense'] },
-  { id: 'coop', label: 'Кооп', tags: ['Co-op', 'Online Co-Op', 'Local Co-Op'] },
-  { id: 'rpg', label: 'RPG', tags: ['RPG', 'Action RPG', 'JRPG', 'CRPG'] },
-  { id: 'shooter', label: 'Шутеры', tags: ['FPS', 'Shooter', 'Third-Person Shooter', 'Hero Shooter', 'Arena Shooter'] },
-  { id: 'sim', label: 'Симуляторы', tags: ['Simulation', 'Life Sim', 'Farming Sim', 'Management', 'City Builder', 'Building'] },
+  { id: 'horror', tags: ['Horror', 'Survival Horror', 'Psychological Horror'] },
+  { id: 'strategy', tags: ['Strategy', 'RTS', 'Turn-Based Strategy', 'Grand Strategy', '4X', 'Tower Defense'] },
+  { id: 'coop', tags: ['Co-op', 'Online Co-Op', 'Local Co-Op'] },
+  { id: 'rpg', tags: ['RPG', 'Action RPG', 'JRPG', 'CRPG'] },
+  { id: 'shooter', tags: ['FPS', 'Shooter', 'Third-Person Shooter', 'Hero Shooter', 'Arena Shooter'] },
+  { id: 'sim', tags: ['Simulation', 'Life Sim', 'Farming Sim', 'Management', 'City Builder', 'Building'] },
 ].map((p) => {
   const set = new Set(p.tags);
-  return { ...p, hint: 'по тегам Steam: ' + p.tags.slice(0, 3).join(', '), test: (g) => g.tags.some((t) => set.has(t)), byTag: true };
+  return { ...p, test: (g) => g.tags.some((t) => set.has(t)), byTag: true };
 });
 
 export const POOLS = [...BASE_POOLS, ...TAG_POOLS];
 
+// Pool names and hints are interface strings (pool.<id>, poolHint.<id>).
 export function poolLabel(id) {
-  const p = POOLS.find((x) => x.id === id);
-  return p ? p.label : id;
+  return POOLS.some((p) => p.id === id) ? t('pool.' + id) : id;
+}
+
+export function poolHint(p) {
+  return p.byTag ? t('poolHint.tags', { tags: p.tags.slice(0, 3).join(', ') }) : t('poolHint.' + p.id);
 }
 
 // One round, fully scored: the review-count guess plus the positive-share bonus.

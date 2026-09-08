@@ -1,11 +1,11 @@
 import { useMemo, useState } from 'react';
-import { fmt } from '../lib/scoring.js';
+import { fmt, fmtDate, gameDesc, t } from '../lib/i18n.js';
 import { movieUrls } from '../lib/data.js';
 import Lightbox from './Lightbox.jsx';
 
 function priceText(g) {
-  if (g.price === 0) return 'бесплатно';
-  return g.priceText || 'нет в продаже';
+  if (g.price === 0) return t('card.free');
+  return g.priceText || t('card.notForSale');
 }
 
 const PLATFORM_LABEL = { windows: 'Windows', mac: 'macOS', linux: 'Linux' };
@@ -58,7 +58,7 @@ export default function GameCard({ game, revealed, startWith = 'trailer', childr
               <source src={cur.mp4} type="video/mp4" onError={() => setVideoFailed(true)} />
             </video>
           ) : (
-            <button type="button" className="card-main" onClick={() => setLightbox(active)} title="Увеличить">
+            <button type="button" className="card-main" onClick={() => setLightbox(active)} title={t('lb.zoom')}>
               <img className="card-bg" src={cur.src} alt="" aria-hidden="true" />
               <img className="card-fg" src={cur.src} alt="" />
               <span className="zoom-badge"><ZoomIcon /></span>
@@ -79,46 +79,46 @@ export default function GameCard({ game, revealed, startWith = 'trailer', childr
 
       <div className="card-body">
         <h2 className="card-title">{game.name}</h2>
-        <p className="card-desc">{game.desc}</p>
+        <p className="card-desc">{gameDesc(game)}</p>
         {children}
       </div>
 
       <div className="hints">
-        <div className="hints-label">Об игре</div>
+        <div className="hints-label">{t('card.about')}</div>
         <div className="hint open">
-          <div className="hint-label">Теги и жанры</div>
+          <div className="hint-label">{t('card.tags')}</div>
           <div className="hint-body">
             <div className="tags">
-              {game.tags.map((t) => <span key={t} className="tag">{t}</span>)}
-              {game.tags.length === 0 && game.genres.map((t) => <span key={t} className="tag">{t}</span>)}
+              {game.tags.map((x) => <span key={x} className="tag">{x}</span>)}
+              {game.tags.length === 0 && game.genres.map((x) => <span key={x} className="tag">{x}</span>)}
             </div>
           </div>
         </div>
         <div className="hint open">
-          <div className="hint-label">Выход, цена, разработчик</div>
+          <div className="hint-label">{t('card.release')}</div>
           <div className="hint-body">
             <dl className="kv">
-              <dt>Дата выхода</dt><dd>{game.date || (game.year ?? '—')}</dd>
-              <dt>Цена</dt><dd>{priceText(game)}</dd>
-              <dt>Разработчик</dt><dd>{game.dev.join(', ') || '—'}</dd>
-              <dt>Издатель</dt><dd>{game.pub.join(', ') || '—'}</dd>
-              <dt>Платформы</dt><dd>{game.platforms.map((p) => PLATFORM_LABEL[p] || p).join(', ') || '—'}</dd>
+              <dt>{t('card.date')}</dt><dd>{game.date ? fmtDate(game.date) : (game.year ?? '—')}</dd>
+              <dt>{t('card.price')}</dt><dd>{priceText(game)}</dd>
+              <dt>{t('card.dev')}</dt><dd>{game.dev.join(', ') || '—'}</dd>
+              <dt>{t('card.pub')}</dt><dd>{game.pub.join(', ') || '—'}</dd>
+              <dt>{t('card.platforms')}</dt><dd>{game.platforms.map((p) => PLATFORM_LABEL[p] || p).join(', ') || '—'}</dd>
             </dl>
           </div>
         </div>
         <div className="hint open">
-          <div className="hint-label">Metacritic, DLC, достижения</div>
+          <div className="hint-label">{t('card.press')}</div>
           <div className="hint-body">
             <dl className="kv">
-              <dt>Metacritic</dt><dd>{game.meta ?? 'нет оценки'}</dd>
-              <dt>DLC</dt><dd>{game.dlc}</dd>
-              <dt>Достижений</dt><dd>{game.ach}</dd>
+              <dt>{t('card.meta')}</dt><dd>{game.meta ?? t('card.noMeta')}</dd>
+              <dt>{t('card.dlc')}</dt><dd>{game.dlc}</dd>
+              <dt>{t('card.ach')}</dt><dd>{game.ach}</dd>
             </dl>
           </div>
         </div>
         {revealed && game.owners && (
           <div className="hint open">
-            <div className="hint-label">Владельцев по оценке SteamSpy</div>
+            <div className="hint-label">{t('card.owners')}</div>
             <div className="hint-body">{ownersText(game.owners)}</div>
           </div>
         )}

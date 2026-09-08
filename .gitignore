@@ -26,3 +26,6 @@ dist-ssr
 # SteamGuessr
 scripts/cache/
 design/steamguessr-screens.html
+
+# atomic-write temp files of the dataset builder
+public/data/*.tmp

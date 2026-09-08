@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { createPortal } from 'react-dom';
+import { t } from '../lib/i18n.js';
 
 function Chevron({ dir }) {
   return (
@@ -34,7 +35,7 @@ export default function Lightbox({ items, index, onClose, onIndex }) {
   if (!cur) return null;
 
   return createPortal(
-    <div className="lightbox" onClick={onClose} role="dialog" aria-modal="true" aria-label="Просмотр">
+    <div className="lightbox" onClick={onClose} role="dialog" aria-modal="true" aria-label={t('lb.view')}>
       <div className="lightbox-body" onClick={(e) => e.stopPropagation()}>
         {cur.type === 'video' ? (
           <video key={cur.webm} className="lightbox-media" controls autoPlay playsInline poster={cur.poster}>
@@ -46,11 +47,11 @@ export default function Lightbox({ items, index, onClose, onIndex }) {
         )}
         {count > 1 && (
           <>
-            <button type="button" className="lightbox-nav prev" onClick={prev} aria-label="Предыдущий"><Chevron dir="left" /></button>
-            <button type="button" className="lightbox-nav next" onClick={next} aria-label="Следующий"><Chevron dir="right" /></button>
+            <button type="button" className="lightbox-nav prev" onClick={prev} aria-label={t('lb.prev')}><Chevron dir="left" /></button>
+            <button type="button" className="lightbox-nav next" onClick={next} aria-label={t('lb.next')}><Chevron dir="right" /></button>
           </>
         )}
-        <button type="button" className="lightbox-close" onClick={onClose} aria-label="Закрыть">
+        <button type="button" className="lightbox-close" onClick={onClose} aria-label={t('lb.close')}>
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg>
         </button>
         <div className="lightbox-counter">{index + 1} / {count}</div>

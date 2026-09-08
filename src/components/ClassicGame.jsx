@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import { pickGames } from '../lib/data.js';
-import { ROUNDS, MAX_ROUND, fmt, scoreRound, scoreEmoji, poolLabel } from '../lib/scoring.js';
+import { ROUNDS, MAX_ROUND, scoreRound, scoreEmoji, poolLabel } from '../lib/scoring.js';
+import { fmt, t } from '../lib/i18n.js';
 import { loadStats, updateStats, bumpStreak } from '../lib/storage.js';
 import GameCard from './GameCard.jsx';
 import GuessSlider from './GuessSlider.jsx';
@@ -45,7 +46,7 @@ export default function ClassicGame({ data, seed, pool, daily, onExit, onReplay 
   }
 
   if (games.length === 0) {
-    return <div className="notice">В датасете пока нет игр для этого режима.</div>;
+    return <div className="notice">{t('game.noGames')}</div>;
   }
 
   if (phase === 'summary') {
@@ -54,18 +55,19 @@ export default function ClassicGame({ data, seed, pool, daily, onExit, onReplay 
     );
   }
 
+  const roundLabel = t('game.round', { i: round + 1, n: games.length });
   return (
     <div className="game">
       <div className="topbar">
-        <span className="crumb">{daily ? 'Дейли' : poolLabel(pool)}</span>
-        <div className="pips" aria-label={`Раунд ${round + 1} из ${games.length}`}>
+        <span className="crumb">{daily ? t('game.daily') : poolLabel(pool)}</span>
+        <div className="pips" aria-label={roundLabel}>
           {games.map((g, i) => (
             <span key={g.id} className={'pip' + (i < results.length ? ' done' : i === round ? ' current' : '')}></span>
           ))}
         </div>
-        <span>Раунд {round + 1} из {games.length}</span>
-        <span className="topbar-score">Очки: <strong>{fmt(total)}</strong></span>
-        <button className="link" onClick={onExit}>Выйти</button>
+        <span>{roundLabel}</span>
+        <span className="topbar-score">{t('game.score')} <strong>{fmt(total)}</strong></span>
+        <button className="link" onClick={onExit}>{t('game.exit')}</button>
       </div>
       {round === 0 && phase === 'play' && <HowTo />}
       <GameCard key={'card-' + game.id} game={game} revealed={phase === 'reveal'}>

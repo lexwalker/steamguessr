@@ -18,6 +18,7 @@
     node scripts/build-dataset.mjs --spy-pages=0,1 --tail=300 --lang=english --cc=us
     node scripts/build-dataset.mjs --rebuild       # only reassemble games.json from the cache
     node scripts/build-dataset.mjs --enrich=movies # add trailer ids to apps collected without them
+    node scripts/build-dataset.mjs --enrich=desc   # add English short descriptions (dataset is collected in Russian)
 */
 import fs from 'node:fs';
 import path from 'node:path';
@@ -219,11 +220,32 @@ async function processApp({ id, tier }) {
 const HEADER_RE = /^https:\/\/shared\.(?:akamai|fastly)\.steamstatic\.com\/store_item_assets\/steam\/apps\/(\d+)\/header\.jpg(?:\?.*)?$/;
 const SHOT_RE = /^https:\/\/shared\.(?:akamai|fastly)\.steamstatic\.com\/store_item_assets\/steam\/apps\/(\d+)\/ss_([0-9a-f]+)\.600x338\.jpg(?:\?.*)?$/;
 
+// Steam's Russian review summary -> the store's numeric review_score (0 = too few reviews).
+const SCORE_BY_DESC = {
+  'Крайне положительные': 9, 'Очень положительные': 8, 'Положительные': 7, 'В основном положительные': 6,
+  'Смешанные': 5, 'В основном отрицательные': 4, 'Отрицательные': 3, 'Очень отрицательные': 2, 'Крайне отрицательные': 1,
+};
+const RU_MONTHS = { 'янв': 1, 'фев': 2, 'мар': 3, 'апр': 4, 'мая': 5, 'май': 5, 'июн': 6, 'июл': 7, 'авг': 8, 'сен': 9, 'окт': 10, 'ноя': 11, 'дек': 12 };
+
+// "17 сен. 2020 г." -> "2020-09-17"; anything else (e.g. "Скоро", "Q4 2026") stays as text.
+function isoDate(s) {
+  const m = /^(\d{1,2}) ([а-яё]+)\.? (\d{4})/i.exec(String(s || ''));
+  if (!m) return s || '';
+  const mo = RU_MONTHS[m[2].toLowerCase().slice(0, 3)];
+  if (!mo) return s;
+  return `${m[3]}-${String(mo).padStart(2, '0')}-${String(m[1]).padStart(2, '0')}`;
+}
+
 function compact(g) {
   const out = { ...g };
   delete out.ccu;
   delete out.moviesChecked;
+  delete out.descChecked;
   if (typeof out.movie !== 'number') delete out.movie;
+  out.score = SCORE_BY_DESC[g.scoreDesc] ?? 0;
+  delete out.scoreDesc;
+  out.date = isoDate(g.date);
+  if (!out.descEn) delete out.descEn;
   const hm = HEADER_RE.exec(g.img || '');
   if (hm && hm[1] === String(g.id)) delete out.img;
   out.shots = (g.shots || []).map((s) => {
@@ -283,9 +305,47 @@ async function enrichMovies() {
   log(`done. movies: ok ${stats.ok}, none ${stats.none}, network ${stats.network}; games.json: ${r.games} games`);
 }
 
+// English short descriptions (the dataset was collected with l=russian); popular games first.
+async function enrichDesc() {
+  const todo = [];
+  for (const f of fs.readdirSync(APPS)) {
+    if (!f.endsWith('.json')) continue;
+    const g = readJSON(path.join(APPS, f));
+    if (g && !g.skip && !g.descChecked) todo.push(g);
+  }
+  todo.sort((a, b) => b.reviews - a.reviews);
+  const total = Math.min(todo.length, LIMIT);
+  log(`desc: ${todo.length} apps without an English description, checking ${total}`);
+  let done = 0;
+  const stats = { ok: 0, none: 0, network: 0 };
+  const workers = Array.from({ length: CONCURRENCY }, async () => {
+    while (todo.length && done < LIMIT) {
+      const g = todo.shift();
+      const d = await qStore(() => getJSON(`https://store.steampowered.com/api/appdetails?appids=${g.id}&l=english&filters=basic`));
+      if (d === undefined) { stats.network++; continue; }
+      const entry = d && d[g.id];
+      const data = entry && entry.success && entry.data;
+      const desc = data ? stripHtml(data.short_description) : '';
+      if (desc) g.descEn = desc.length > 320 ? desc.slice(0, 317).replace(/\s+\S*$/, '') + '…' : desc;
+      g.descChecked = true;
+      writeJSON(path.join(APPS, g.id + '.json'), g);
+      stats[desc ? 'ok' : 'none']++;
+      done++;
+      if (done % 50 === 0) { assemble(); log(`desc ${done}/${total} (ok ${stats.ok}, none ${stats.none}, network ${stats.network})`); }
+    }
+  });
+  await Promise.all(workers);
+  const r = assemble();
+  log(`done. desc: ok ${stats.ok}, none ${stats.none}, network ${stats.network}; games.json: ${r.games} games`);
+}
+
 async function main() {
   if (args.enrich === 'movies') {
     await enrichMovies();
+    return;
+  }
+  if (args.enrich === 'desc') {
+    await enrichDesc();
     return;
   }
   if (args.rebuild) {

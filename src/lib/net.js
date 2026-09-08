@@ -1,3 +1,4 @@
+import { t } from './i18n.js';
 // Lobby transport: one MQTT topic per lobby over a public WebSocket broker.
 // The host publishes its authoritative state as a retained message, so anyone
 // who (re)connects gets the current state immediately. Player actions are plain
@@ -36,7 +37,7 @@ export async function openChannel(code, { onMessage, onStatus }) {
       if (onStatus) onStatus('retry');
     }
   }
-  if (!client) throw new Error('Не удалось подключиться к серверу лобби');
+  if (!client) throw new Error(t('mp.netFail'));
 
   client.on('message', (t, payload) => {
     if (t !== topic || !payload.length) return;
