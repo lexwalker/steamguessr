@@ -49,7 +49,7 @@ function HintBlock({ hint, unlocked, onHint, children }) {
     );
   }
   return (
-    <button type="button" className="hint locked" onClick={() => onHint(hint.id)}>
+    <button type="button" className="hint locked" onClick={() => onHint(hint.id)} title={`Открыть за ${fmt(hint.cost)} очков`}>
       <LockIcon />
       <span className="hint-name">{hint.label}</span>
       <span className="hint-cost">−{fmt(hint.cost)}</span>
@@ -57,7 +57,9 @@ function HintBlock({ hint, unlocked, onHint, children }) {
   );
 }
 
-export default function GameCard({ game, hints, onHint, revealed, startWith = 'trailer' }) {
+// The game card: media + hints on the left, title + description + whatever the
+// screen puts there (guess panel, verdict) on the right.
+export default function GameCard({ game, hints, onHint, revealed, startWith = 'trailer', children }) {
   const [videoFailed, setVideoFailed] = useState(false);
   const items = useMemo(() => {
     const list = [];
@@ -106,42 +108,44 @@ export default function GameCard({ game, hints, onHint, revealed, startWith = 't
       <div className="card-body">
         <h2 className="card-title">{game.name}</h2>
         <p className="card-desc">{game.desc}</p>
+        {children}
+      </div>
 
-        <div className="hints">
-          <HintBlock hint={tags} unlocked={unlocked('tags')} onHint={onHint}>
-            <div className="tags">
-              {game.tags.map((t) => <span key={t} className="tag">{t}</span>)}
-              {game.tags.length === 0 && game.genres.map((t) => <span key={t} className="tag">{t}</span>)}
+      <div className="hints">
+        <div className="hints-label">{revealed ? 'Об игре' : 'Подсказки · открываются за очки'}</div>
+        <HintBlock hint={tags} unlocked={unlocked('tags')} onHint={onHint}>
+          <div className="tags">
+            {game.tags.map((t) => <span key={t} className="tag">{t}</span>)}
+            {game.tags.length === 0 && game.genres.map((t) => <span key={t} className="tag">{t}</span>)}
+          </div>
+        </HintBlock>
+
+        <HintBlock hint={details} unlocked={unlocked('details')} onHint={onHint}>
+          <dl className="kv">
+            <dt>Дата выхода</dt><dd>{game.date || (game.year ?? '—')}</dd>
+            <dt>Цена</dt><dd>{priceText(game)}</dd>
+            <dt>Разработчик</dt><dd>{game.dev.join(', ') || '—'}</dd>
+            <dt>Платформы</dt><dd>{game.platforms.map((p) => PLATFORM_LABEL[p] || p).join(', ') || '—'}</dd>
+          </dl>
+        </HintBlock>
+
+        <HintBlock hint={press} unlocked={unlocked('press')} onHint={onHint}>
+          <dl className="kv">
+            <dt>Metacritic</dt><dd>{game.meta ?? 'нет оценки'}</dd>
+            <dt>DLC</dt><dd>{game.dlc}</dd>
+            <dt>Достижений</dt><dd>{game.ach}</dd>
+          </dl>
+        </HintBlock>
+
+        {revealed && (
+          <div className="hint open">
+            <div className="hint-label">Издатель</div>
+            <div className="hint-body">
+              {game.pub.join(', ') || '—'}
+              {game.owners ? ` · владельцев по SteamSpy: ${ownersText(game.owners)}` : ''}
             </div>
-          </HintBlock>
-
-          <HintBlock hint={details} unlocked={unlocked('details')} onHint={onHint}>
-            <dl className="kv">
-              <dt>Дата выхода</dt><dd>{game.date || (game.year ?? '—')}</dd>
-              <dt>Цена</dt><dd>{priceText(game)}</dd>
-              <dt>Разработчик</dt><dd>{game.dev.join(', ') || '—'}</dd>
-              <dt>Платформы</dt><dd>{game.platforms.map((p) => PLATFORM_LABEL[p] || p).join(', ') || '—'}</dd>
-            </dl>
-          </HintBlock>
-
-          <HintBlock hint={press} unlocked={unlocked('press')} onHint={onHint}>
-            <dl className="kv">
-              <dt>Metacritic</dt><dd>{game.meta ?? 'нет оценки'}</dd>
-              <dt>DLC</dt><dd>{game.dlc}</dd>
-              <dt>Достижений</dt><dd>{game.ach}</dd>
-            </dl>
-          </HintBlock>
-
-          {revealed && (
-            <div className="hint open">
-              <div className="hint-label">Издатель</div>
-              <div className="hint-body">
-                {game.pub.join(', ') || '—'}
-                {game.owners ? ` · владельцев по SteamSpy: ${ownersText(game.owners)}` : ''}
-              </div>
-            </div>
-          )}
-        </div>
+          </div>
+        )}
       </div>
 
       {lightbox >= 0 && (

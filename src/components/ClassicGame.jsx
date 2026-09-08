@@ -6,6 +6,7 @@ import GameCard from './GameCard.jsx';
 import GuessSlider from './GuessSlider.jsx';
 import RoundResult from './RoundResult.jsx';
 import Summary from './Summary.jsx';
+import HowTo from './HowTo.jsx';
 
 export default function ClassicGame({ data, seed, pool, daily, onExit, onReplay }) {
   const games = useMemo(() => pickGames(data.games, pool, seed, ROUNDS), [data, pool, seed]);
@@ -69,10 +70,12 @@ export default function ClassicGame({ data, seed, pool, daily, onExit, onReplay 
         <span className="topbar-score">Очки: <strong>{fmt(total)}</strong></span>
         <button className="link" onClick={onExit}>Выйти</button>
       </div>
-      <GameCard key={'card-' + game.id} game={game} hints={hints} onHint={(id) => setHints([...hints, id])} revealed={phase === 'reveal'} />
-      {phase === 'play'
-        ? <GuessSlider key={'guess-' + game.id} maxScore={maxScore} onSubmit={submit} />
-        : <RoundResult key={'result-' + game.id} game={game} result={results[results.length - 1]} isLast={results.length >= games.length} onNext={next} />}
+      {round === 0 && phase === 'play' && <HowTo />}
+      <GameCard key={'card-' + game.id} game={game} hints={hints} onHint={(id) => setHints([...hints, id])} revealed={phase === 'reveal'}>
+        {phase === 'play'
+          ? <GuessSlider key={'guess-' + game.id} maxScore={maxScore} onSubmit={submit} />
+          : <RoundResult key={'result-' + game.id} game={game} result={results[results.length - 1]} isLast={results.length >= games.length} onNext={next} />}
+      </GameCard>
     </div>
   );
 }

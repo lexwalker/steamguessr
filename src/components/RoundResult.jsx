@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { fmt, ratioText, positivePct, valueToSlider } from '../lib/scoring.js';
+import { fmt, ratioText, positivePct, valueToSlider, reviewsWord } from '../lib/scoring.js';
 import { steamUrl } from '../lib/data.js';
 import { MARKS, markLabel } from './GuessSlider.jsx';
 
@@ -29,8 +29,14 @@ export function useCountUp(target, ms = 800) {
   return v;
 }
 
+export function gradeOf(main) {
+  return main >= 4000 ? 'great' : main >= 2500 ? 'ok' : main >= 1000 ? 'meh' : 'bad';
+}
+
+const VERDICT = { great: 'Отлично!', ok: 'Неплохо', meh: 'Мимо, но рядом', bad: 'Совсем не туда' };
+
 // Log scale with one marker per guess and the truth marker sliding in from the first guess.
-export function ScaleBar({ guesses, actual }) {
+export function ScaleBar({ guesses, actual, compact = false }) {
   const a = valueToSlider(actual) * 100;
   const [revealed, setRevealed] = useState(false);
   useEffect(() => {
@@ -43,7 +49,7 @@ export function ScaleBar({ guesses, actual }) {
   const hi = Math.max(truthPos, ...guesses.map((g) => valueToSlider(g.value) * 100));
   const multi = guesses.length > 1;
   return (
-    <div className="scale" aria-hidden="true">
+    <div className={'scale' + (compact ? ' compact' : '')} aria-hidden="true">
       <div className="scale-track">
         {!multi && <div className="scale-gap" style={{ left: `${lo}%`, width: `${hi - lo}%` }}></div>}
         {MARKS.map((m) => <span key={m} className="scale-tick" style={{ left: `${valueToSlider(m) * 100}%` }}></span>)}
@@ -71,33 +77,49 @@ export function ReviewLine({ game }) {
   );
 }
 
-export default function RoundResult({ game, result, isLast, onNext }) {
-  const pct = positivePct(game);
-  const grade = result.main >= 4000 ? 'great' : result.main >= 2500 ? 'ok' : result.main >= 1000 ? 'meh' : 'bad';
-  const verdict = { great: 'Отлично!', ok: 'Неплохо', meh: 'Мимо, но рядом', bad: 'Совсем не туда' }[grade];
-  const shown = useCountUp(result.main);
-  const shownBonus = useCountUp(result.bonus || 0, 1100);
-
+// The personal verdict: how close you were, in one glance. Used by classic and multiplayer.
+export function Verdict({ game, guess, pct, main, bonus, max, hints, rankLine, noAnswer }) {
+  const grade = noAnswer ? 'bad' : gradeOf(main);
+  const shown = useCountUp(noAnswer ? 0 : main);
+  const shownBonus = useCountUp(noAnswer ? 0 : bonus || 0, 1100);
+  const truthPct = positivePct(game);
   return (
-    <section className={'result ' + grade}>
-      <div className="result-score">
-        <span className="result-points">+{fmt(shown)}</span>
-        <span className="result-verdict">{verdict}</span>
-        {typeof result.pct === 'number' && game.reviews > 0 && (
-          <span className={'result-bonus' + (result.bonus ? ' hit' : '')}>бонус +{fmt(shownBonus)}</span>
+    <div className={'verdict ' + grade}>
+      <div className="verdict-head">
+        <span className="verdict-badge">{noAnswer ? 'Без ответа' : VERDICT[grade]}</span>
+        <span className="verdict-points">+{fmt(shown)}</span>
+        {!noAnswer && typeof pct === 'number' && game.reviews > 0 && (
+          <span className={'verdict-bonus' + (bonus ? ' hit' : '')}>бонус +{fmt(shownBonus)}</span>
         )}
-        {result.hints.length > 0 && <span className="result-note">потолок раунда {fmt(result.max)}</span>}
+      </div>
+      {rankLine && <div className="verdict-rank">{rankLine}</div>}
+
+      <div className="truth-hero">
+        <div className="truth-col">
+          <div className="truth-label">Правда</div>
+          <div className="truth-num">{fmt(game.reviews)}</div>
+          <div className="truth-word">{reviewsWord(game.reviews)}{game.reviews > 0 ? ` · ${truthPct}% положительных` : ''}</div>
+        </div>
+        {!noAnswer && (
+          <div className="truth-col yours">
+            <div className="truth-label">Твой ответ</div>
+            <div className="truth-num">{fmt(guess)}</div>
+            <div className="truth-word">{ratioText(guess, game.reviews)}{typeof pct === 'number' && game.reviews > 0 ? ` · ${pct}%` : ''}</div>
+          </div>
+        )}
       </div>
 
       <ReviewLine game={game} />
-      <div className="truth-guess">
-        {game.reviews > 0 && <>{pct}% из {fmt(game.reviews)} отзывов положительные. </>}
-        Твой ответ: {fmt(result.guess)}, {ratioText(result.guess, game.reviews)}.
-        {typeof result.pct === 'number' && game.reviews > 0 && <> Процент: ты {result.pct}%, правда {pct}%.</>}
-      </div>
+      {hints && hints.length > 0 && <div className="dim">Потолок раунда {fmt(max)} из-за открытых подсказок.</div>}
+    </div>
+  );
+}
 
-      <ScaleBar guesses={[{ label: 'ты', value: result.guess }]} actual={game.reviews} />
-
+export default function RoundResult({ game, result, isLast, onNext }) {
+  return (
+    <section className="result">
+      <Verdict game={game} guess={result.guess} pct={result.pct} main={result.main} bonus={result.bonus} max={result.max} hints={result.hints} />
+      <ScaleBar guesses={[{ label: 'ты', value: result.guess }]} actual={game.reviews} compact />
       <div className="result-actions">
         <a className="btn" href={steamUrl(game)} target="_blank" rel="noreferrer">Открыть в Steam</a>
         <button className="btn primary big" onClick={onNext} autoFocus>{isLast ? 'Итоги' : 'Дальше'}</button>

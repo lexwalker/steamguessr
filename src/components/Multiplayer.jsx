@@ -6,7 +6,8 @@ import { POOLS, MAX_ROUND, fmt, hintCost, positivePct, poolLabel } from '../lib/
 import { playerIdentity, savePlayerName } from '../lib/storage.js';
 import GameCard from './GameCard.jsx';
 import GuessSlider from './GuessSlider.jsx';
-import { ScaleBar, ReviewLine, useCountUp } from './RoundResult.jsx';
+import { ScaleBar, Verdict } from './RoundResult.jsx';
+import HowTo from './HowTo.jsx';
 
 const ROUND_OPTIONS = [3, 5, 10];
 const TIMER_OPTIONS = [30, 45, 60, 90, 120];
@@ -174,7 +175,7 @@ function Lobby({ state, me, isHost, host, status }) {
   );
 }
 
-function RoundView({ state, me, games, offset, answered, onSubmit, hints, onHint }) {
+function RoundView({ state, me, games, offset, answered, myGuess, onSubmit, hints, onHint }) {
   const game = games[state.round];
   if (!game) return <div className="notice">Игра не найдена в датасете. Обнови страницу.</div>;
   const maxScore = MAX_ROUND - hintCost(hints);
@@ -187,19 +188,22 @@ function RoundView({ state, me, games, offset, answered, onSubmit, hints, onHint
         {state.deadline ? <TimerBar deadline={state.deadline} offset={offset} total={state.settings.timer} /> : null}
         <span className="dim">ответили {state.answered.length} из {state.order.filter((id) => state.players[id].online).length}</span>
       </div>
-      <GameCard key={'card-' + game.id} game={game} hints={hints} onHint={onHint} revealed={false} />
-      {answered ? (
-        <section className="waiting">
-          <div className="waiting-title">Ответ принят</div>
-          <div className="note">
-            {waitingFor.length
-              ? <>Ждём: {waitingFor.map((id) => state.players[id].name).join(', ')}</>
-              : 'Все ответили, считаем…'}
-          </div>
-        </section>
-      ) : (
-        <GuessSlider key={'guess-' + game.id} maxScore={maxScore} deadline={localDeadline || undefined} onSubmit={(g) => onSubmit(g, maxScore)} />
-      )}
+      {state.round === 0 && <HowTo multiplayer />}
+      <GameCard key={'card-' + game.id} game={game} hints={hints} onHint={onHint} revealed={false}>
+        {answered ? (
+          <section className="waiting">
+            <div className="waiting-title">Ответ принят</div>
+            {myGuess && <div className="waiting-mine">Твой ответ: <b>{fmt(myGuess.value)}</b>{typeof myGuess.pct === 'number' ? ` · ${myGuess.pct}%` : ''}</div>}
+            <div className="note">
+              {waitingFor.length
+                ? <>Ждём: {waitingFor.map((id) => state.players[id].name).join(', ')}</>
+                : 'Все ответили, считаем…'}
+            </div>
+          </section>
+        ) : (
+          <GuessSlider key={'guess-' + game.id} maxScore={maxScore} deadline={localDeadline || undefined} onSubmit={(g) => onSubmit(g, maxScore)} />
+        )}
+      </GameCard>
     </div>
   );
 }
@@ -211,8 +215,17 @@ function RevealView({ state, me, games, data, offset, isHost, host, isLast }) {
     .map((id) => ({ id, name: state.players[id].name, g: result.guesses[id], total: state.players[id].score, idx: state.order.indexOf(id) }))
     .sort((a, b) => ((b.g && b.g.score) || 0) - ((a.g && a.g.score) || 0));
   const mine = result.guesses[me.id];
-  const shown = useCountUp(mine ? mine.score : 0);
   const guesses = state.order.filter((id) => result.guesses[id]).map((id) => ({ label: state.players[id].name, value: result.guesses[id].value }));
+  const ranked = rows.filter((r) => r.g);
+  const myRank = ranked.findIndex((r) => r.id === me.id);
+  const best = ranked[0];
+  let rankLine = '';
+  if (mine && best) {
+    if (myRank === 0) rankLine = ranked.length > 1 ? 'Ты ближе всех в этом раунде!' : '';
+    else rankLine = `${myRank + 1}-е место в раунде. Ближе всех ${best.name}: ${fmt(best.g.value)}.`;
+  } else if (best) {
+    rankLine = `Ближе всех ${best.name}: ${fmt(best.g.value)}.`;
+  }
   if (!game) return <div className="notice">Игра не найдена в датасете.</div>;
   return (
     <div className="game">
@@ -221,13 +234,17 @@ function RevealView({ state, me, games, data, offset, isHost, host, isLast }) {
         <span className="dim">{isLast ? 'итоги' : 'следующий раунд'} через <Countdown at={state.nextAt} offset={offset} /></span>
         {isHost && <button className="link" onClick={() => host.next()}>{isLast ? 'К итогам' : 'Дальше сейчас'}</button>}
       </div>
-      <GameCard key={'card-' + game.id} game={game} hints={[]} onHint={() => {}} revealed={true} startWith="image" />
+      <GameCard key={'card-' + game.id} game={game} hints={[]} onHint={() => {}} revealed={true} startWith="image">
+        <section className="result">
+          <Verdict game={game} guess={mine ? mine.value : 0} pct={mine ? mine.pct : null} main={mine ? mine.main : 0} bonus={mine ? mine.bonus : 0} max={MAX_ROUND} hints={[]} rankLine={rankLine} noAnswer={!mine} />
+          <div className="result-actions">
+            <a className="btn" href={steamUrl(game)} target="_blank" rel="noreferrer">Открыть в Steam</a>
+            {isHost && <button className="btn primary big" onClick={() => host.next()}>{isLast ? 'К итогам' : 'Дальше сейчас'}</button>}
+          </div>
+        </section>
+      </GameCard>
       <section className="result mp-result">
-        <div className="result-score">
-          <span className="result-points">{mine ? '+' + fmt(shown) : 'без ответа'}</span>
-          {mine && mine.bonus > 0 && <span className="result-bonus hit">в том числе бонус +{fmt(mine.bonus)}</span>}
-        </div>
-        <ReviewLine game={game} />
+        <div className="mp-compare-title">Сравнение раунда</div>
         <ScaleBar guesses={guesses} actual={game.reviews} />
         <table className="rounds mp-table">
           <thead>
@@ -236,7 +253,7 @@ function RevealView({ state, me, games, data, offset, isHost, host, isLast }) {
           <tbody>
             {rows.map((r) => (
               <tr key={r.id} className={r.id === me.id ? 'me' : ''}>
-                <td><PlayerName state={state} id={r.id} /></td>
+                <td><PlayerName state={state} id={r.id} />{r.id === me.id && <span className="dim"> · ты</span>}{best && r.id === best.id && ranked.length > 1 && <span className="tag best"> ближе всех</span>}</td>
                 <td>{r.g ? <>{fmt(r.g.value)}{typeof r.g.pct === 'number' ? <span className="dim"> · {r.g.pct}%</span> : null}</> : <span className="dim">нет ответа</span>}</td>
                 <td>{fmt(game.reviews)}{game.reviews > 0 ? <span className="dim"> · {positivePct(game)}%</span> : null}</td>
                 <td>{r.g ? <>{fmt(r.g.main)}{r.g.bonus ? <span className="dim"> +{fmt(r.g.bonus)}</span> : null}</> : '0'}</td>
@@ -245,9 +262,6 @@ function RevealView({ state, me, games, data, offset, isHost, host, isLast }) {
             ))}
           </tbody>
         </table>
-        <div className="result-actions">
-          <a className="btn" href={steamUrl(game)} target="_blank" rel="noreferrer">Открыть в Steam</a>
-        </div>
       </section>
     </div>
   );
@@ -305,6 +319,7 @@ function Room({ data, code, me, isHost, onExit }) {
   const [offset, setOffset] = useState(0);
   const [hints, setHints] = useState([]);
   const [answeredRound, setAnsweredRound] = useState(-1);
+  const [myGuess, setMyGuess] = useState(null);
   const chan = useRef(null);
   const host = useRef(null);
   const hostSeen = useRef(Date.now());
@@ -379,6 +394,7 @@ function Room({ data, code, me, isHost, onExit }) {
   const submit = useCallback((g, maxScore) => {
     if (!state || state.phase !== 'round') return;
     setAnsweredRound(state.round);
+    setMyGuess({ value: g.value, pct: g.pct });
     if (host.current) host.current.submitOwn(g.value, g.pct, maxScore);
     else if (chan.current) chan.current.publish({ t: 'guess', from: me.id, round: state.round, value: g.value, pct: g.pct, max: maxScore });
   }, [state, me.id]);
@@ -397,7 +413,7 @@ function Room({ data, code, me, isHost, onExit }) {
       {spectator && <div className="banner">Игра уже идёт, ты смотришь как зритель. Присоединиться можно в следующей партии.</div>}
       {!inGame && state.phase === 'lobby' && status === 'connected' && <div className="banner">Заходим в лобби…</div>}
       {state.phase === 'lobby' && <Lobby state={state} me={me} isHost={isHost} host={host.current} status={status} />}
-      {state.phase === 'round' && <RoundView state={state} me={me} games={games} offset={offset} answered={answered || spectator} onSubmit={submit} hints={hints} onHint={(id) => setHints([...hints, id])} />}
+      {state.phase === 'round' && <RoundView state={state} me={me} games={games} offset={offset} answered={answered || spectator} myGuess={answeredRound === state.round ? myGuess : null} onSubmit={submit} hints={hints} onHint={(id) => setHints([...hints, id])} />}
       {state.phase === 'reveal' && <RevealView state={state} me={me} games={games} data={data} offset={offset} isHost={isHost} host={host.current} isLast={isLast} />}
       {state.phase === 'final' && <FinalView state={state} me={me} games={games} isHost={isHost} host={host.current} onExit={onExit} />}
       <div className="mp-foot">

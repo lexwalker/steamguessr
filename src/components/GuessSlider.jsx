@@ -9,8 +9,9 @@ export function markLabel(m) {
   return String(m);
 }
 
-// Review-count guess (log slider) plus the positive-share bonus guess.
-// `deadline` (ms, local clock) makes the form submit itself when time runs out.
+// The answer panel: the question, a log slider for the review count, the
+// positive-share bonus and one big button. `deadline` (ms, local clock) makes
+// the panel submit itself when time runs out.
 export default function GuessSlider({ maxScore, onSubmit, deadline, showBonus = true }) {
   const [t, setT] = useState(valueToSlider(1000));
   const [typed, setTyped] = useState('');
@@ -36,10 +37,12 @@ export default function GuessSlider({ maxScore, onSubmit, deadline, showBonus = 
 
   return (
     <form className="guess" onSubmit={submit}>
+      <div className="guess-question">Сколько отзывов у этой игры в Steam?</div>
+      <div className="guess-sub">Двигай ползунок или введи число. За попадание до {fmt(maxScore)} очков.</div>
+
       <div className="guess-value">
         <span className="guess-num">{fmt(value)}</span>
         <span className="guess-word">{reviewsWord(value)}</span>
-        <span className="guess-max">максимум за раунд: {fmt(maxScore + (showBonus ? MAX_BONUS : 0))}</span>
       </div>
       <div className="slider-wrap">
         <input
@@ -62,11 +65,18 @@ export default function GuessSlider({ maxScore, onSubmit, deadline, showBonus = 
           ))}
         </div>
       </div>
+      <input
+        className="typed"
+        inputMode="numeric"
+        placeholder="или введи число отзывов"
+        value={typed}
+        onChange={(e) => setTyped(e.target.value)}
+      />
 
       {showBonus && (
         <div className="bonus">
           <div className="bonus-head">
-            <span className="bonus-label">Бонус до {fmt(MAX_BONUS)}: сколько процентов отзывов положительные?</span>
+            <span className="bonus-label">Бонус до {fmt(MAX_BONUS)}: сколько % отзывов положительные?</span>
             <span className="bonus-value">{pct}%</span>
           </div>
           <input
@@ -82,16 +92,7 @@ export default function GuessSlider({ maxScore, onSubmit, deadline, showBonus = 
         </div>
       )}
 
-      <div className="guess-row">
-        <input
-          className="typed"
-          inputMode="numeric"
-          placeholder="или введи число отзывов"
-          value={typed}
-          onChange={(e) => setTyped(e.target.value)}
-        />
-        <button type="submit" className="btn primary big">Ответить</button>
-      </div>
+      <button type="submit" className="btn primary big wide">Ответить</button>
     </form>
   );
 }
