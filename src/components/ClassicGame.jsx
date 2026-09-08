@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { pickGames } from '../lib/data.js';
-import { ROUNDS, MAX_ROUND, fmt, hintCost, roundScore, scoreEmoji, poolLabel } from '../lib/scoring.js';
-import { loadStats, updateStats } from '../lib/storage.js';
+import { ROUNDS, MAX_ROUND, fmt, hintCost, scoreRound, scoreEmoji, poolLabel } from '../lib/scoring.js';
+import { loadStats, updateStats, bumpStreak } from '../lib/storage.js';
 import GameCard from './GameCard.jsx';
 import GuessSlider from './GuessSlider.jsx';
 import RoundResult from './RoundResult.jsx';
@@ -23,9 +23,9 @@ export default function ClassicGame({ data, seed, pool, daily, onExit, onReplay 
   const total = results.reduce((s, r) => s + r.score, 0);
   const maxScore = MAX_ROUND - hintCost(hints);
 
-  function submit(guess) {
-    const score = roundScore(guess, game.reviews, maxScore);
-    setResults([...results, { id: game.id, guess, score, hints, max: maxScore }]);
+  function submit({ value, pct }) {
+    const scored = scoreRound(game, value, pct, maxScore);
+    setResults([...results, { id: game.id, guess: value, pct, ...scored, hints, max: maxScore }]);
     setPhase('reveal');
   }
 
@@ -34,7 +34,10 @@ export default function ClassicGame({ data, seed, pool, daily, onExit, onReplay 
       updateStats((s) => {
         s.classicGames += 1;
         if (total > s.classicBest) s.classicBest = total;
-        if (daily) s.daily[dateKey] = { score: total, grid: results.map((r) => scoreEmoji(r.score)).join(''), rounds: results };
+        if (daily) {
+          s.daily[dateKey] = { score: total, grid: results.map((r) => scoreEmoji(r.main)).join(''), rounds: results };
+          bumpStreak(s, dateKey);
+        }
       });
       setPhase('summary');
       return;
@@ -66,7 +69,7 @@ export default function ClassicGame({ data, seed, pool, daily, onExit, onReplay 
         <span className="topbar-score">Очки: <strong>{fmt(total)}</strong></span>
         <button className="link" onClick={onExit}>Выйти</button>
       </div>
-      <GameCard key={"card-" + game.id} game={game} hints={hints} onHint={(id) => setHints([...hints, id])} revealed={phase === 'reveal'} />
+      <GameCard key={'card-' + game.id} game={game} hints={hints} onHint={(id) => setHints([...hints, id])} revealed={phase === 'reveal'} />
       {phase === 'play'
         ? <GuessSlider key={'guess-' + game.id} maxScore={maxScore} onSubmit={submit} />
         : <RoundResult key={'result-' + game.id} game={game} result={results[results.length - 1]} isLast={results.length >= games.length} onNext={next} />}

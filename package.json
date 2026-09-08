@@ -11,6 +11,7 @@
     "dataset": "node scripts/build-dataset.mjs"
   },
   "dependencies": {
+    "mqtt": "^5.15.2",
     "react": "^19.2.8",
     "react-dom": "^19.2.8"
   },

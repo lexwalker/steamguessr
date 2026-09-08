@@ -4,6 +4,7 @@ import { randomSeed, todayKey } from './lib/rng.js';
 import Home from './components/Home.jsx';
 import ClassicGame from './components/ClassicGame.jsx';
 import HigherLower from './components/HigherLower.jsx';
+import Multiplayer from './components/Multiplayer.jsx';
 
 function screenFromUrl() {
   const p = new URLSearchParams(location.search);
@@ -11,6 +12,7 @@ function screenFromUrl() {
   if (mode === 'classic') return { name: 'classic', pool: p.get('pool') || 'mix', seed: p.get('seed') || randomSeed() };
   if (mode === 'daily') return { name: 'classic', daily: true, pool: 'mix', seed: 'daily-' + todayKey() };
   if (mode === 'hilo') return { name: 'hilo', seed: p.get('seed') || randomSeed() };
+  if (mode === 'mp') return { name: 'mp', lobby: (p.get('lobby') || '').toUpperCase() || null };
   return { name: 'home' };
 }
 
@@ -18,6 +20,7 @@ function urlFor(s) {
   if (s.name === 'classic' && s.daily) return '?mode=daily';
   if (s.name === 'classic') return `?mode=classic&pool=${s.pool}&seed=${s.seed}`;
   if (s.name === 'hilo') return `?mode=hilo&seed=${s.seed}`;
+  if (s.name === 'mp') return s.lobby ? `?mode=mp&lobby=${s.lobby}` : '?mode=mp';
   return location.pathname;
 }
 
@@ -72,6 +75,15 @@ export default function App() {
         seed={screen.seed}
         onExit={() => go({ name: 'home' })}
         onReplay={() => go({ name: 'hilo', seed: randomSeed() })}
+      />
+    );
+  } else if (screen.name === 'mp') {
+    body = (
+      <Multiplayer
+        data={data}
+        lobby={screen.lobby}
+        onLobby={(code) => go({ name: 'mp', lobby: code })}
+        onExit={() => go({ name: 'home' })}
       />
     );
   } else {

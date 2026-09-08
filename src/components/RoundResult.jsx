@@ -12,7 +12,7 @@ export function reviewTone(game) {
   return 'negative';
 }
 
-function useCountUp(target, ms = 800) {
+export function useCountUp(target, ms = 800) {
   const [v, setV] = useState(0);
   useEffect(() => {
     let raf = 0;
@@ -29,16 +29,30 @@ function useCountUp(target, ms = 800) {
   return v;
 }
 
-function ScaleBar({ guess, actual }) {
-  const g = valueToSlider(guess) * 100;
+// Log scale with one marker per guess and the truth marker sliding in from the first guess.
+export function ScaleBar({ guesses, actual }) {
   const a = valueToSlider(actual) * 100;
+  const [revealed, setRevealed] = useState(false);
+  useEffect(() => {
+    const id = requestAnimationFrame(() => setRevealed(true));
+    return () => cancelAnimationFrame(id);
+  }, []);
+  const first = guesses.length ? valueToSlider(guesses[0].value) * 100 : a;
+  const truthPos = revealed ? a : first;
+  const lo = Math.min(truthPos, ...guesses.map((g) => valueToSlider(g.value) * 100));
+  const hi = Math.max(truthPos, ...guesses.map((g) => valueToSlider(g.value) * 100));
+  const multi = guesses.length > 1;
   return (
     <div className="scale" aria-hidden="true">
       <div className="scale-track">
-        <div className="scale-gap" style={{ left: `${Math.min(g, a)}%`, width: `${Math.abs(g - a)}%` }}></div>
+        {!multi && <div className="scale-gap" style={{ left: `${lo}%`, width: `${hi - lo}%` }}></div>}
         {MARKS.map((m) => <span key={m} className="scale-tick" style={{ left: `${valueToSlider(m) * 100}%` }}></span>)}
-        <div className="scale-mark mark-guess" style={{ left: `${g}%` }}><span>ты</span></div>
-        <div className="scale-mark mark-truth" style={{ left: `${a}%` }}><span>правда</span></div>
+        {guesses.map((g, i) => (
+          <div key={g.label + i} className={'scale-mark mark-guess' + (multi ? ' p' + (i % 8) : '')} style={{ left: `${valueToSlider(g.value) * 100}%` }} title={`${g.label}: ${fmt(g.value)}`}>
+            <span>{g.label}</span>
+          </div>
+        ))}
+        <div className="scale-mark mark-truth" style={{ left: `${truthPos}%` }}><span>правда</span></div>
       </div>
       <div className="scale-labels">
         {MARKS.map((m) => <span key={m} style={{ left: `${valueToSlider(m) * 100}%` }}>{markLabel(m)}</span>)}
@@ -47,31 +61,42 @@ function ScaleBar({ guess, actual }) {
   );
 }
 
+export function ReviewLine({ game }) {
+  return (
+    <div className="review-line">
+      <span className="review-label">Все обзоры:</span>
+      <span className={'review-desc ' + reviewTone(game)}>{game.scoreDesc || (game.reviews ? '' : 'Отзывов пока нет')}</span>
+      <span className="review-count">({fmt(game.reviews)})</span>
+    </div>
+  );
+}
+
 export default function RoundResult({ game, result, isLast, onNext }) {
   const pct = positivePct(game);
-  const grade = result.score >= 4000 ? 'great' : result.score >= 2500 ? 'ok' : result.score >= 1000 ? 'meh' : 'bad';
+  const grade = result.main >= 4000 ? 'great' : result.main >= 2500 ? 'ok' : result.main >= 1000 ? 'meh' : 'bad';
   const verdict = { great: 'Отлично!', ok: 'Неплохо', meh: 'Мимо, но рядом', bad: 'Совсем не туда' }[grade];
-  const shown = useCountUp(result.score);
+  const shown = useCountUp(result.main);
+  const shownBonus = useCountUp(result.bonus || 0, 1100);
 
   return (
     <section className={'result ' + grade}>
       <div className="result-score">
         <span className="result-points">+{fmt(shown)}</span>
         <span className="result-verdict">{verdict}</span>
+        {typeof result.pct === 'number' && game.reviews > 0 && (
+          <span className={'result-bonus' + (result.bonus ? ' hit' : '')}>бонус +{fmt(shownBonus)}</span>
+        )}
         {result.hints.length > 0 && <span className="result-note">потолок раунда {fmt(result.max)}</span>}
       </div>
 
-      <div className="review-line">
-        <span className="review-label">Все обзоры:</span>
-        <span className={'review-desc ' + reviewTone(game)}>{game.scoreDesc || (game.reviews ? '' : 'Отзывов пока нет')}</span>
-        <span className="review-count">({fmt(game.reviews)})</span>
-      </div>
+      <ReviewLine game={game} />
       <div className="truth-guess">
         {game.reviews > 0 && <>{pct}% из {fmt(game.reviews)} отзывов положительные. </>}
         Твой ответ: {fmt(result.guess)}, {ratioText(result.guess, game.reviews)}.
+        {typeof result.pct === 'number' && game.reviews > 0 && <> Процент: ты {result.pct}%, правда {pct}%.</>}
       </div>
 
-      <ScaleBar guess={result.guess} actual={game.reviews} />
+      <ScaleBar guesses={[{ label: 'ты', value: result.guess }]} actual={game.reviews} />
 
       <div className="result-actions">
         <a className="btn" href={steamUrl(game)} target="_blank" rel="noreferrer">Открыть в Steam</a>

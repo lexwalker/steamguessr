@@ -57,7 +57,7 @@ function HintBlock({ hint, unlocked, onHint, children }) {
   );
 }
 
-export default function GameCard({ game, hints, onHint, revealed }) {
+export default function GameCard({ game, hints, onHint, revealed, startWith = 'trailer' }) {
   const [videoFailed, setVideoFailed] = useState(false);
   const items = useMemo(() => {
     const list = [];
@@ -68,7 +68,7 @@ export default function GameCard({ game, hints, onHint, revealed }) {
     return list;
   }, [game, videoFailed]);
 
-  const [active, setActive] = useState(0);
+  const [active, setActive] = useState(() => (startWith === 'image' && movieUrls(game.movie) ? 1 : 0));
   const [lightbox, setLightbox] = useState(-1);
   const unlocked = (id) => revealed || hints.includes(id);
   const [tags, details, press] = HINTS;

@@ -1,6 +1,7 @@
 import { useState } from 'react';
-import { fmt, scoreEmoji, poolLabel, MAX_ROUND } from '../lib/scoring.js';
+import { fmt, scoreEmoji, poolLabel, ROUND_TOTAL, daysWord } from '../lib/scoring.js';
 import { steamUrl } from '../lib/data.js';
+import { loadStats, currentStreak } from '../lib/storage.js';
 
 function copy(text) {
   try {
@@ -12,11 +13,13 @@ function copy(text) {
 
 export default function Summary({ games, results, total, daily, dateKey, pool, onExit, onReplay }) {
   const [copied, setCopied] = useState('');
-  const max = games.length * MAX_ROUND;
-  const grid = results.map((r) => scoreEmoji(r.score)).join('');
+  const max = games.length * ROUND_TOTAL;
+  const grid = results.map((r) => scoreEmoji(r.main ?? r.score)).join('');
   const link = location.origin + location.pathname + location.search;
   const title = daily ? `Дейли ${dateKey.split('-').reverse().join('.')}` : `Классика · ${poolLabel(pool)}`;
-  const shareText = `SteamGuessr · ${title}\n${fmt(total)} / ${fmt(max)}\n${grid}\n${link}`;
+  const streak = daily ? currentStreak(loadStats(), dateKey) : 0;
+  const streakLine = streak > 1 ? `\n🔥 ${streak} ${daysWord(streak)} подряд` : '';
+  const shareText = `SteamGuessr · ${title}\n${fmt(total)} / ${fmt(max)}\n${grid}${streakLine}\n${link}`;
 
   function share(kind, text) {
     copy(text).then(() => setCopied(kind)).catch(() => setCopied('fail'));
@@ -29,6 +32,7 @@ export default function Summary({ games, results, total, daily, dateKey, pool, o
       <div className="summary-total">
         <span className="summary-points">{fmt(total)}</span>
         <span className="summary-max">из {fmt(max)}</span>
+        {daily && streak > 0 && <span className="summary-streak">🔥 {streak} {daysWord(streak)} подряд</span>}
         <span className="summary-grid">{grid}</span>
       </div>
 
@@ -46,9 +50,9 @@ export default function Summary({ games, results, total, daily, dateKey, pool, o
                   <span>{games[i].name}</span>
                 </a>
               </td>
-              <td>{fmt(r.guess)}</td>
-              <td>{fmt(games[i].reviews)}</td>
-              <td>{scoreEmoji(r.score)} {fmt(r.score)}</td>
+              <td>{fmt(r.guess)}{typeof r.pct === 'number' ? <span className="dim"> · {r.pct}%</span> : null}</td>
+              <td>{fmt(games[i].reviews)}{games[i].reviews > 0 ? <span className="dim"> · {Math.round(games[i].pos / games[i].reviews * 100)}%</span> : null}</td>
+              <td>{scoreEmoji(r.main ?? r.score)} {fmt(r.main ?? r.score)}{r.bonus ? <span className="dim"> +{fmt(r.bonus)}</span> : null}</td>
             </tr>
           ))}
         </tbody>
