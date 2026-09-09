@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { pickGames } from '../lib/data.js';
 import { ROUNDS, MAX_ROUND, scoreRound, scoreEmoji, poolLabel } from '../lib/scoring.js';
 import { fmt, t } from '../lib/i18n.js';
-import { loadStats, updateStats, bumpStreak, addXp } from '../lib/storage.js';
+import { loadStats, updateStats, bumpStreak, addXp, loadRun, saveRun, clearRun, runKeyFor } from '../lib/storage.js';
 import { checkCalibration, checkGame, checkStreak, dailyGrade, recordRound, toast, xpFor } from '../lib/progress.js';
 import { todayKey } from '../lib/rng.js';
 import GameCard from './GameCard.jsx';
@@ -12,36 +12,65 @@ import Summary from './Summary.jsx';
 import HowTo from './HowTo.jsx';
 import TimerBar from './TimerBar.jsx';
 
+function byIds(ids, all) {
+  const byId = new Map(all.map((g) => [g.id, g]));
+  const games = ids.map((id) => byId.get(id));
+  return games.every(Boolean) ? games : null;
+}
+
 // A finished daily / weekly is restored from storage. The stored rounds carry game ids, so the
 // summary shows the games that were actually played even if today's set changed since.
-function restore(stored, games, all) {
+function restoreFinished(stored, all) {
   if (!stored || !Array.isArray(stored.rounds) || !stored.rounds.length) return null;
-  if (stored.rounds.length === games.length && stored.rounds.every((r, i) => r.id === games[i].id)) return { results: stored.rounds, games };
-  const byId = new Map(all.map((g) => [g.id, g]));
-  const played = stored.rounds.map((r) => byId.get(r.id));
-  return played.every(Boolean) ? { results: stored.rounds, games: played } : null;
+  const games = byIds(stored.rounds.map((r) => r.id), all);
+  return games ? { games, results: stored.rounds, phase: 'summary', finish: { xp: stored.xp, grade: stored.grade, unlocked: [] }, deadline: 0 } : null;
+}
+
+// A game in progress resumes at the same round with the same games (ids were saved when it
+// started), the answers already given and, for timed rounds, the original deadline.
+function restoreRun(run, rounds, all) {
+  if (!run || !Array.isArray(run.ids) || run.ids.length !== rounds) return null;
+  const games = byIds(run.ids, all);
+  if (!games) return null;
+  const results = Array.isArray(run.results) ? run.results.filter((r) => games.some((g) => g.id === r.id)) : [];
+  if (results.length >= rounds) return null;
+  return { games, results, phase: run.phase === 'reveal' && results.length ? 'reveal' : 'play', finish: null, deadline: run.deadline || 0 };
 }
 
 export default function ClassicGame({ data, seed, pool, daily, weekly, rounds = ROUNDS, timer = 0, onExit, onReplay }) {
-  const picked = useMemo(() => pickGames(data.games, pool, seed, rounds), [data, pool, seed, rounds]);
   const dateKey = daily ? seed.replace(/^daily-/, '') : null;
   const wKey = weekly ? seed.replace(/^weekly-/, '') : null;
-  const stored = daily ? loadStats().daily[dateKey] : weekly ? loadStats().weekly[wKey] : null;
-  const restored = useMemo(() => restore(stored, picked, data.games), [stored, picked, data]);
-  const games = restored ? restored.games : picked;
+  const runKey = runKeyFor({ daily, weekly, seed, pool });
 
-  const [results, setResults] = useState(restored ? restored.results : []);
-  const [phase, setPhase] = useState(restored ? 'summary' : 'play'); // play | reveal | summary
-  const [finish, setFinish] = useState(restored ? { xp: stored.xp, grade: stored.grade, unlocked: [] } : null);
-  const [deadline, setDeadline] = useState(0);
+  const initial = useMemo(() => {
+    const stats = loadStats();
+    const stored = daily ? stats.daily[dateKey] : weekly ? stats.weekly[wKey] : null;
+    return restoreFinished(stored, data.games)
+      || restoreRun(loadRun(runKey), rounds, data.games)
+      || { games: pickGames(data.games, pool, seed, rounds), results: [], phase: 'play', finish: null, deadline: 0 };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [data, seed, pool, rounds]);
+
+  const [games] = useState(initial.games);
+  const [results, setResults] = useState(initial.results);
+  const [phase, setPhase] = useState(initial.phase); // play | reveal | summary
+  const [finish, setFinish] = useState(initial.finish);
+  const [deadline, setDeadline] = useState(initial.deadline);
 
   const round = phase === 'summary' ? games.length : Math.min(results.length - (phase === 'reveal' ? 1 : 0), games.length - 1);
   const game = games[round];
   const total = results.reduce((s, r) => s + r.score, 0);
 
+  // Timed rounds: a deadline is set when a round opens and kept across reloads.
   useEffect(() => {
-    if (timer && phase === 'play') setDeadline(Date.now() + timer * 1000);
-  }, [timer, phase, round]);
+    if (timer && phase === 'play' && !deadline) setDeadline(Date.now() + timer * 1000);
+  }, [timer, phase, round, deadline]);
+
+  // Everything needed to resume is written after each step; the slot is cleared when the game ends.
+  useEffect(() => {
+    if (phase === 'summary') return;
+    saveRun({ key: runKey, ids: games.map((g) => g.id), results, phase, deadline });
+  }, [runKey, games, results, phase, deadline]);
 
   function submit({ value, pct }) {
     const scored = scoreRound(game, value, pct, MAX_ROUND);
@@ -76,11 +105,13 @@ export default function ClassicGame({ data, seed, pool, daily, weekly, rounds = 
         info.unlocked.push(...checkGame(s, { results, games, daily, weekly, grade: info.grade, date }));
         info.unlocked.push(...checkCalibration(s, date));
       });
+      clearRun(runKey);
       for (const id of info.unlocked) toast({ type: 'ach', id });
       setFinish(info);
       setPhase('summary');
       return;
     }
+    setDeadline(0);
     setPhase('play');
   }
 

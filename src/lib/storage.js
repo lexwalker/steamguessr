@@ -81,6 +81,44 @@ export function streakProtected(stats, todayKey) {
   return gap > 1 && gap - 1 <= (stats.freezes || 0);
 }
 
+// The game in progress (one slot): picked game ids, answers so far, phase and the round deadline.
+// A reload or "exit" mid-game resumes from the same round instead of starting over.
+const RUN_KEY = 'steamguessr-run';
+
+export function loadRun(key) {
+  try {
+    const r = JSON.parse(localStorage.getItem(RUN_KEY) || 'null');
+    return r && r.key === key ? r : null;
+  } catch {
+    return null;
+  }
+}
+
+export function saveRun(run) {
+  try {
+    localStorage.setItem(RUN_KEY, JSON.stringify(run));
+  } catch {
+    /* ignore */
+  }
+}
+
+export function clearRun(key) {
+  try {
+    const r = JSON.parse(localStorage.getItem(RUN_KEY) || 'null');
+    if (r && r.key === key) localStorage.removeItem(RUN_KEY);
+  } catch {
+    /* ignore */
+  }
+}
+
+// Daily and weekly runs are keyed by their seed only: the picked ids are stored with the run,
+// so a theme change between versions still resumes the same games.
+export function runKeyFor({ daily, weekly, seed, pool }) {
+  if (daily) return 'daily:' + seed;
+  if (weekly) return 'weekly:' + seed;
+  return `classic:${seed}:${pool}`;
+}
+
 // Player identity for multiplayer: a stable id per browser plus a chosen name.
 export function playerIdentity() {
   let id = '';

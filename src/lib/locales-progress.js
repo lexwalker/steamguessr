@@ -1,6 +1,7 @@
 // Strings for progression: daily hero, weekly challenge, profile, calibration, achievements.
 
 const en = {
+  'daily.resume': 'Continue',
   'daily.number': 'Daily #{n}',
   'daily.theme': 'Theme of the day: {pool}',
   'daily.desc': 'Five games, the same for everyone today. One attempt, then compare with friends.',
@@ -57,6 +58,7 @@ const en = {
 };
 
 const ru = {
+  'daily.resume': 'Продолжить',
   'daily.number': 'Дейли №{n}',
   'daily.theme': 'Тема дня: {pool}',
   'daily.desc': 'Пять игр, сегодня одинаковые для всех. Одна попытка, потом сравни с друзьями.',
@@ -113,6 +115,7 @@ const ru = {
 };
 
 const de = {
+  'daily.resume': 'Weiter',
   'daily.number': 'Tagesrunde Nr. {n}', 'daily.theme': 'Thema des Tages: {pool}',
   'daily.desc': 'Fünf Spiele, heute für alle gleich. Ein Versuch, dann mit Freunden vergleichen.',
   'daily.play': 'Tagesrunde spielen', 'daily.nextIn': 'nächste in {h} h {m} min', 'daily.grade': 'Note des Tages',
@@ -135,6 +138,7 @@ const de = {
 };
 
 const fr = {
+  'daily.resume': 'Continuer',
   'daily.number': 'Quotidien n°{n}', 'daily.theme': 'Thème du jour : {pool}',
   'daily.desc': 'Cinq jeux, les mêmes pour tout le monde aujourd’hui. Une tentative, puis compare avec tes amis.',
   'daily.play': 'Jouer le quotidien', 'daily.nextIn': 'le prochain dans {h} h {m} min', 'daily.grade': 'Note du jour',
@@ -157,6 +161,7 @@ const fr = {
 };
 
 const es = {
+  'daily.resume': 'Continuar',
   'daily.number': 'Diario n.º {n}', 'daily.theme': 'Tema del día: {pool}',
   'daily.desc': 'Cinco juegos, hoy iguales para todos. Un intento y luego compara con tus amigos.',
   'daily.play': 'Jugar el diario', 'daily.nextIn': 'el siguiente en {h} h {m} min', 'daily.grade': 'Nota del día',
@@ -179,6 +184,7 @@ const es = {
 };
 
 const pt = {
+  'daily.resume': 'Continuar',
   'daily.number': 'Diário nº {n}', 'daily.theme': 'Tema do dia: {pool}',
   'daily.desc': 'Cinco jogos, hoje iguais para todo mundo. Uma tentativa, depois compare com os amigos.',
   'daily.play': 'Jogar o diário', 'daily.nextIn': 'o próximo em {h} h {m} min', 'daily.grade': 'Nota do dia',
@@ -201,6 +207,7 @@ const pt = {
 };
 
 const pl = {
+  'daily.resume': 'Kontynuuj',
   'daily.number': 'Codzienna nr {n}', 'daily.theme': 'Temat dnia: {pool}',
   'daily.desc': 'Pięć gier, dziś takich samych dla wszystkich. Jedna próba, potem porównaj ze znajomymi.',
   'daily.play': 'Graj codzienną', 'daily.nextIn': 'następna za {h} godz. {m} min', 'daily.grade': 'Ocena dnia',
@@ -223,6 +230,7 @@ const pl = {
 };
 
 const tr = {
+  'daily.resume': 'Devam et',
   'daily.number': 'Günlük #{n}', 'daily.theme': 'Günün teması: {pool}',
   'daily.desc': 'Beş oyun, bugün herkes için aynı. Tek deneme, sonra arkadaşlarınla karşılaştır.',
   'daily.play': 'Günlüğü oyna', 'daily.nextIn': 'sonraki {h} sa {m} dk sonra', 'daily.grade': 'Günün notu',
@@ -245,6 +253,7 @@ const tr = {
 };
 
 const zh = {
+  'daily.resume': '继续',
   'daily.number': '每日 #{n}', 'daily.theme': '今日主题：{pool}',
   'daily.desc': '五款游戏，今天所有人相同。只有一次机会，然后和朋友比一比。',
   'daily.play': '玩每日挑战', 'daily.nextIn': '下一期 {h} 小时 {m} 分后', 'daily.grade': '今日评级',
@@ -267,6 +276,7 @@ const zh = {
 };
 
 const ja = {
+  'daily.resume': '続ける',
   'daily.number': 'デイリー #{n}', 'daily.theme': '今日のテーマ: {pool}',
   'daily.desc': '5 本のゲーム、今日は全員同じ。挑戦は 1 回、そのあと友達と比べよう。',
   'daily.play': 'デイリーをプレイ', 'daily.nextIn': '次は {h} 時間 {m} 分後', 'daily.grade': '今日の評価',
@@ -289,6 +299,7 @@ const ja = {
 };
 
 const ko = {
+  'daily.resume': '계속하기',
   'daily.number': '데일리 #{n}', 'daily.theme': '오늘의 테마: {pool}',
   'daily.desc': '게임 다섯 개, 오늘은 모두 같은 게임. 기회는 한 번, 그다음 친구들과 비교하세요.',
   'daily.play': '데일리 플레이', 'daily.nextIn': '다음은 {h}시간 {m}분 후', 'daily.grade': '오늘의 등급',

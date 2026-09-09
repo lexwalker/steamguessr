@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { POOLS, ROUND_TOTAL, ROUNDS, poolLabel, poolHint } from '../lib/scoring.js';
 import { fmt, fmtDate, t } from '../lib/i18n.js';
-import { loadStats, currentStreak, streakProtected } from '../lib/storage.js';
+import { loadStats, currentStreak, streakProtected, loadRun, runKeyFor } from '../lib/storage.js';
 import { poolGames } from '../lib/data.js';
 import { mulberry32, randomSeed, seededShuffle, todayKey } from '../lib/rng.js';
 import { ACHIEVEMENTS, WEEKLY, calibration, dailyNumber, dailyPool, levelInfo, msToMidnight, weekKey } from '../lib/progress.js';
@@ -55,6 +55,8 @@ function DailyHero({ stats, today, onStart }) {
   const pool = dailyPool(today);
   const wk = weekKey(today);
   const weeklyDone = stats.weekly[wk];
+  const dailyRun = !done && loadRun(runKeyFor({ daily: true, seed: 'daily-' + today, pool }));
+  const weeklyRun = !weeklyDone && loadRun(runKeyFor({ weekly: true, seed: 'weekly-' + wk, pool: WEEKLY.pool }));
   return (
     <section className="daily-hero">
       <div className="daily-head">
@@ -74,7 +76,7 @@ function DailyHero({ stats, today, onStart }) {
       )}
       <div className="daily-actions">
         <button className="btn primary big" onClick={() => onStart({ name: 'classic', daily: true, pool, seed: 'daily-' + today })}>
-          {done ? t('home.seeResult') : t('daily.play')}
+          {done ? t('home.seeResult') : dailyRun ? t('daily.resume') : t('daily.play')}
         </button>
         <span className="pill streak" title={t('daily.streakBest', { n: stats.streak.best })}>🔥 {streak > 0 ? t('summary.streak', { n: streak }).replace('🔥 ', '') : t('home.noStreak')}</span>
         {stats.freezes > 0 && <span className="pill freeze" title={t('daily.freezes', { n: stats.freezes })}>❄️ ×{stats.freezes}</span>}
@@ -87,7 +89,7 @@ function DailyHero({ stats, today, onStart }) {
         <span className="dim">· {t('weekly.name', { w: wk.slice(6) })} · {t('weekly.rules')}</span>
         {weeklyDone
           ? <button className="link" onClick={() => onStart({ name: 'classic', weekly: true, pool: WEEKLY.pool, seed: 'weekly-' + wk })}>{t('weekly.done', { score: fmt(weeklyDone.score) })}</button>
-          : <button className="btn small" onClick={() => onStart({ name: 'classic', weekly: true, pool: WEEKLY.pool, seed: 'weekly-' + wk })}>{t('weekly.play')}</button>}
+          : <button className="btn small" onClick={() => onStart({ name: 'classic', weekly: true, pool: WEEKLY.pool, seed: 'weekly-' + wk })}>{weeklyRun ? t('daily.resume') : t('weekly.play')}</button>}
       </div>
     </section>
   );
