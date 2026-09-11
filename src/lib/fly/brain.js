@@ -61,7 +61,7 @@ export function createBrainView(host, { data, onPhase, onStats } = {}) {
   const bgGeo = new THREE.BufferGeometry();
   bgGeo.setAttribute('position', new THREE.BufferAttribute(bg, 3));
   bgGeo.setAttribute('color', new THREE.BufferAttribute(bgColor, 3));
-  const bgMat = new THREE.PointsMaterial({ size: 1.15, sizeAttenuation: false, vertexColors: true, transparent: true, opacity: 0.065, blending: THREE.AdditiveBlending, depthWrite: false });
+  const bgMat = new THREE.PointsMaterial({ size: 1.15, sizeAttenuation: false, vertexColors: true, transparent: true, opacity: 0.085, blending: THREE.AdditiveBlending, depthWrite: false });
   world.add(new THREE.Points(bgGeo, bgMat));
 
   const layers = ['pn', 'kc', 'mbon'];
