@@ -143,8 +143,8 @@ export function breakdown(stats, field, min = 5) {
 
 // ------------------------------------------------------------------ achievements
 
-export const ACHIEVEMENTS = ['bullseye', 'five_green', 'rating_exact', 'streak3', 'streak7', 'streak30', 'streak100', 'hilo20', 'mp_wins3', 'daily_s', 'weekly_done', 'sharp'];
-export const ACH_ICON = { bullseye: '🎯', five_green: '🟩', rating_exact: '💯', streak3: '🔥', streak7: '🔥', streak30: '🔥', streak100: '🔥', hilo20: '⚖️', mp_wins3: '👑', daily_s: 'S', weekly_done: '🏆', sharp: '🧠' };
+export const ACHIEVEMENTS = ['bullseye', 'five_green', 'rating_exact', 'streak3', 'streak7', 'streak30', 'streak100', 'hilo20', 'mp_wins3', 'daily_s', 'weekly_done', 'sharp', 'fly_win'];
+export const ACH_ICON = { bullseye: '🎯', five_green: '🟩', rating_exact: '💯', streak3: '🔥', streak7: '🔥', streak30: '🔥', streak100: '🔥', hilo20: '⚖️', mp_wins3: '👑', daily_s: 'S', weekly_done: '🏆', sharp: '🧠', fly_win: '🪰' };
 
 export function unlock(stats, id, date) {
   if (stats.ach[id]) return false;

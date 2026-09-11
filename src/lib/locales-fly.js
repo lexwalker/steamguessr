@@ -1,4 +1,5 @@
 const en = {
+  'fly.share': 'Copy result', 'fly.roundsWon': 'rounds {a} : {b}', 'fly.brain': 'Kenyon cell activity', 'fly.screenNew': 'New game',
   'fly.title': 'Against the fly',
   'fly.description': 'Five games against a trained fly-brain model. It guesses at its own computer — can you get closer?',
   'fly.play': 'Challenge the fly',
@@ -15,8 +16,8 @@ const en = {
   'fly.badGuess': 'Enter a non-negative whole review count and a percentage from 0 to 100.',
   'fly.about': 'About the fly and its training',
   'fly.model': '{n} neurons · {e} connections · FlyWire',
-  'fly.explain': 'An artificial input translates card metadata into activity in a real FlyWire circuit. Only the output layer was trained; the connections stay fixed. The 3D fly is an animated character, not a biomechanical simulation.',
-  'fly.audit': 'Original held-out benchmark: {n} games, {score} / 6000 mean points. The ordinary model scored {baseline}. These are the original experiment’s results; this project’s dataset may have changed.',
+  'fly.explain': 'Card features are turned into artificial signals for a real FlyWire circuit: the input projection, the Kenyon-cell thresholds and the readout are trained, while the wiring between cells stays exactly as in the connectome. The 3D fly is an animated character, not a biomechanical simulation.',
+  'fly.audit': 'Checked on {n} held-out games the fly never trained on: {score} of 6000 points per round on average, against {baseline} for an ordinary linear model on the same card features.',
   'fly.method': 'The model uses tags, price, age, developer, publisher, platforms, Metacritic, DLC and achievements. Review counts and ratings are excluded from its input.',
   'fly.sources': 'Data and attribution', 'fly.metrics': 'Download benchmark report',
   'fly.scene': '3D fly at a computer', 'fly.sceneFallback': '3D is unavailable in this browser. You can still play against the trained model.',
@@ -29,6 +30,7 @@ const en = {
   'fly.screenTyping': 'Entering the answer…', 'fly.screenHidden': 'Revealed after your guess', 'fly.screenDone': 'DONE', 'fly.screenAnswer': 'ANSWER',
 };
 const ru = {
+  'fly.share': 'Скопировать результат', 'fly.roundsWon': 'раунды {a} : {b}', 'fly.brain': 'Активность клеток Кеньона', 'fly.screenNew': 'Новая игра',
   'fly.title': 'Против мухи',
   'fly.description': 'Пять игр против обученной модели мозга мухи. Она отгадывает за своим компьютером — попробуй оказаться точнее.',
   'fly.play': 'Вызвать муху',
@@ -45,8 +47,8 @@ const ru = {
   'fly.badGuess': 'Введи целое неотрицательное число отзывов и процент от 0 до 100.',
   'fly.about': 'О мухе и её обучении',
   'fly.model': '{n} нейронов · {e} связей · FlyWire',
-  'fly.explain': 'Признаки карточки преобразуются в искусственные сигналы для реального контура FlyWire. Обучен только выходной слой, связи фиксированы. 3D-муха — анимированный персонаж, а не биомеханическая симуляция.',
-  'fly.audit': 'Исходная проверка: {n} отложенных игр, в среднем {score} / 6000 очков. Обычная модель набрала {baseline}. Это результаты исходного эксперимента; данные этого проекта могли измениться.',
+  'fly.explain': 'Признаки карточки превращаются в искусственные сигналы для реального контура FlyWire: обучены проекция входа, пороги клеток Кеньона и выходной слой, а связи между клетками остаются ровно такими, как в коннектоме. 3D-муха — анимированный персонаж, а не биомеханическая симуляция.',
+  'fly.audit': 'Проверка на {n} отложенных играх, которых муха не видела при обучении: в среднем {score} из 6000 очков за раунд против {baseline} у обычной линейной модели на тех же признаках карточки.',
   'fly.method': 'Модель получает теги, цену, возраст, разработчика, издателя, платформы, Metacritic, DLC и достижения. Число отзывов и оценка исключены из её входов.',
   'fly.sources': 'Источники данных', 'fly.metrics': 'Скачать отчёт проверки',
   'fly.scene': '3D-муха за компьютером', 'fly.sceneFallback': '3D недоступна в этом браузере. С обученной моделью всё равно можно играть.',

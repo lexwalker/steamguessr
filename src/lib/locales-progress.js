@@ -1,6 +1,7 @@
 // Strings for progression: daily hero, weekly challenge, profile, calibration, achievements.
 
 const en = {
+  'ach.fly_win': 'Fly swatter', 'ach.fly_win.d': 'Beat the fly in a match',
   'daily.resume': 'Continue',
   'daily.number': 'Daily #{n}',
   'daily.theme': 'Theme of the day: {pool}',
@@ -58,6 +59,7 @@ const en = {
 };
 
 const ru = {
+  'ach.fly_win': 'Мухобойка', 'ach.fly_win.d': 'Обыграть муху в партии',
   'daily.resume': 'Продолжить',
   'daily.number': 'Дейли №{n}',
   'daily.theme': 'Тема дня: {pool}',
@@ -115,6 +117,7 @@ const ru = {
 };
 
 const de = {
+  'ach.fly_win': 'Fliegenklatsche', 'ach.fly_win.d': 'Die Fliege in einer Partie schlagen',
   'daily.resume': 'Weiter',
   'daily.number': 'Tagesrunde Nr. {n}', 'daily.theme': 'Thema des Tages: {pool}',
   'daily.desc': 'Fünf Spiele, heute für alle gleich. Ein Versuch, dann mit Freunden vergleichen.',
@@ -138,6 +141,7 @@ const de = {
 };
 
 const fr = {
+  'ach.fly_win': 'Tapette à mouches', 'ach.fly_win.d': 'Battre la mouche dans une partie',
   'daily.resume': 'Continuer',
   'daily.number': 'Quotidien n°{n}', 'daily.theme': 'Thème du jour : {pool}',
   'daily.desc': 'Cinq jeux, les mêmes pour tout le monde aujourd’hui. Une tentative, puis compare avec tes amis.',
@@ -161,6 +165,7 @@ const fr = {
 };
 
 const es = {
+  'ach.fly_win': 'Matamoscas', 'ach.fly_win.d': 'Vencer a la mosca en una partida',
   'daily.resume': 'Continuar',
   'daily.number': 'Diario n.º {n}', 'daily.theme': 'Tema del día: {pool}',
   'daily.desc': 'Cinco juegos, hoy iguales para todos. Un intento y luego compara con tus amigos.',
@@ -184,6 +189,7 @@ const es = {
 };
 
 const pt = {
+  'ach.fly_win': 'Mata-moscas', 'ach.fly_win.d': 'Vencer a mosca numa partida',
   'daily.resume': 'Continuar',
   'daily.number': 'Diário nº {n}', 'daily.theme': 'Tema do dia: {pool}',
   'daily.desc': 'Cinco jogos, hoje iguais para todo mundo. Uma tentativa, depois compare com os amigos.',
@@ -207,6 +213,7 @@ const pt = {
 };
 
 const pl = {
+  'ach.fly_win': 'Packa na muchy', 'ach.fly_win.d': 'Pokonaj muchę w partii',
   'daily.resume': 'Kontynuuj',
   'daily.number': 'Codzienna nr {n}', 'daily.theme': 'Temat dnia: {pool}',
   'daily.desc': 'Pięć gier, dziś takich samych dla wszystkich. Jedna próba, potem porównaj ze znajomymi.',
@@ -230,6 +237,7 @@ const pl = {
 };
 
 const tr = {
+  'ach.fly_win': 'Sineklik', 'ach.fly_win.d': 'Bir maçta sineği yen',
   'daily.resume': 'Devam et',
   'daily.number': 'Günlük #{n}', 'daily.theme': 'Günün teması: {pool}',
   'daily.desc': 'Beş oyun, bugün herkes için aynı. Tek deneme, sonra arkadaşlarınla karşılaştır.',
@@ -253,6 +261,7 @@ const tr = {
 };
 
 const zh = {
+  'ach.fly_win': '苍蝇拍', 'ach.fly_win.d': '在一局中击败果蝇',
   'daily.resume': '继续',
   'daily.number': '每日 #{n}', 'daily.theme': '今日主题：{pool}',
   'daily.desc': '五款游戏，今天所有人相同。只有一次机会，然后和朋友比一比。',
@@ -276,6 +285,7 @@ const zh = {
 };
 
 const ja = {
+  'ach.fly_win': 'ハエたたき', 'ach.fly_win.d': '対戦でハエに勝つ',
   'daily.resume': '続ける',
   'daily.number': 'デイリー #{n}', 'daily.theme': '今日のテーマ: {pool}',
   'daily.desc': '5 本のゲーム、今日は全員同じ。挑戦は 1 回、そのあと友達と比べよう。',
@@ -299,6 +309,7 @@ const ja = {
 };
 
 const ko = {
+  'ach.fly_win': '파리채', 'ach.fly_win.d': '한 판에서 파리를 이기기',
   'daily.resume': '계속하기',
   'daily.number': '데일리 #{n}', 'daily.theme': '오늘의 테마: {pool}',
   'daily.desc': '게임 다섯 개, 오늘은 모두 같은 게임. 기회는 한 번, 그다음 친구들과 비교하세요.',
