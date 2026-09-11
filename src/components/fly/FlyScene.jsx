@@ -36,7 +36,7 @@ export default function FlyScene({ game, prediction, result, model }) {
       const value = latest.current;
       api.current.setGame(value.game);
       api.current.setPrediction(value.prediction);
-      if (value.result) api.current.reveal(value.prediction, value.result.human.score, value.result.fly.score);
+      if (value.result && value.prediction) api.current.reveal(value.prediction, value.result.human.score, value.result.fly.score);
     }).catch(() => { if (active) setFailed(true); });
     return () => { active = false; api.current?.dispose(); api.current = null; };
   }, []);
@@ -47,7 +47,7 @@ export default function FlyScene({ game, prediction, result, model }) {
     api.current.setPrediction(prediction);
   }, [game, prediction]);
   useEffect(() => {
-    if (api.current && result) api.current.reveal(prediction, result.human.score, result.fly.score);
+    if (api.current && result && prediction) api.current.reveal(prediction, result.human.score, result.fly.score);
   }, [result, prediction]);
   useEffect(() => { drawBrain(brain.current, prediction, model); }, [prediction, model]);
 

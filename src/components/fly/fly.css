@@ -3,7 +3,7 @@
 @media(max-width:700px){.fly-intro{flex-direction:column;align-items:stretch;gap:14px}.fly-scoreboard{padding:10px 20px;gap:30px}.fly-scoreboard strong{font-size:25px}.fly-scene-panel{height:340px}.fly-scene-toolbar{left:12px;right:12px;top:12px}.fly-scene-neural{right:12px;bottom:49px;width:185px;padding:10px 12px}.fly-scene-neural strong{font-size:25px}.fly-scene-caption{left:12px;right:12px;bottom:12px}.fly-scene-caption>span:first-child{display:none}.fly-scene-caption>span:last-child{margin-left:auto}.fly-final{padding:20px 12px}.fly-final h1{font-size:25px}.fly-table td,.fly-table th{padding:10px 7px}.fly-round-result{padding:12px}.fly-round-result>strong{font-size:23px}}
 
 /* stage: 3D scene beside the duel panel */
-.fly-stage{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:16px;margin:0 0 18px}
+.fly-stage{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr) 270px;gap:14px;margin:0 0 18px}
 .fly-duel{display:flex;flex-direction:column;gap:12px;min-width:0}
 .fly-duel .fly-scoreboard{flex-direction:column;align-items:stretch;gap:10px;padding:14px 18px}
 .fly-scoreboard{flex-direction:column;gap:10px}
@@ -27,4 +27,25 @@
 .fly-round-result>div>span:last-child{color:var(--text)}
 .fly-table tr.win td:nth-child(2) b{color:var(--green)}.fly-table tr.lose td:nth-child(3) b{color:var(--green)}
 .fly-final .fly-scoreboard{margin:0 auto 6px}
-@media(max-width:1000px){.fly-stage{grid-template-columns:1fr}.fly-duel .fly-scoreboard{flex-direction:column}.fly-duel .fly-ready{margin-top:0}}
+@media(max-width:1180px){.fly-stage{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.fly-duel{grid-column:1/-1;flex-direction:row;flex-wrap:wrap;align-items:flex-start}.fly-duel .fly-scoreboard{flex:1 1 300px}.fly-duel .fly-rules{flex:1 1 260px}.fly-duel .fly-ready{flex:1 1 100%;margin:0}}
+@media(max-width:760px){.fly-stage{grid-template-columns:1fr}.fly-duel{flex-direction:column}.fly-duel .fly-scoreboard{flex-direction:column}.fly-duel .fly-ready{margin-top:0}}
+
+/* brain panel */
+.fly-brain-panel{position:relative;height:340px;overflow:hidden;border-radius:6px;background:#050e16;border:1px solid #1d3547;color:#9fc3d6}
+.fly-brain-panel .fly-scene-toolbar{color:#cfe6f2}
+.fly-brain-panel .fly-cam-label{color:#6fa9c4}
+.fly-brain-panel .fly-scene-buttons button{background:#0f2231d9;border-color:#3a5a6d;color:#cfe6f2}
+.fly-brain-panel .fly-scene-canvas canvas{cursor:grab}
+.brain-layers{position:absolute;left:20px;top:58px;display:flex;align-items:center;gap:6px;font:12px Consolas,monospace;letter-spacing:1px;pointer-events:none}
+.brain-layers i{color:#3f6577;font-style:normal}
+.brain-layer{padding:3px 7px;border-radius:3px;border:1px solid #2b4a5c;color:#6f92a5;transition:all .25s}
+.brain-layer.past{color:#b6d9ea;border-color:#4a7b93}
+.brain-layer.on{color:#0b1a24;background:#8fdcff;border-color:#8fdcff;box-shadow:0 0 12px #8fdcff88}
+.brain-caption{position:absolute;left:16px;right:16px;bottom:10px;display:flex;justify-content:space-between;gap:12px;font-size:11px;color:#6f92a5;pointer-events:none;white-space:nowrap}
+.brain-caption span{overflow:hidden;text-overflow:ellipsis}
+.fly-scene-toolbar>div:first-child{max-width:calc(100% - 118px)}
+.brain-caption span:last-child{color:#c5ef85}
+.fly-brain-panel:fullscreen{width:100vw;height:100vh;border:0;border-radius:0}
+.fly-brain-panel.expanded{position:fixed;inset:16px;z-index:1000;height:auto}
+.fly-ready.thinking{border-left-color:#6fa9c4;background:rgba(111,169,196,.08);color:var(--muted)}
+@media(max-width:700px){.fly-brain-panel{height:300px}.brain-caption span:first-child{display:none}}
