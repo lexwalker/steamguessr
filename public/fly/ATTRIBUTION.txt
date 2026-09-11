@@ -1,0 +1,15 @@
+FlyWire FAFB v783 connectome-derived data — CC BY-NC 4.0.
+Dorkenwald et al. Neuronal wiring diagram of an adult brain. Nature 634, 124–138 (2024).
+https://doi.org/10.1038/s41586-024-07558-y
+Schlegel et al. Whole-brain annotation and multi-connectome cell typing of Drosophila.
+https://doi.org/10.1038/s41586-024-07686-5
+Release and citation terms: https://join.flywire.ai/guidelines
+License: https://creativecommons.org/licenses/by-nc/4.0/
+CSV mirror: https://github.com/snedea/flybrain/tree/main/data
+Changes: left ALPN -> KC -> MBON pathway selection; contact aggregation and normalisation;
+fixed engineered input projection, rate activation and trained external ridge readout.
+Exact source revisions and SHA-256 digests are recorded in metrics.json.
+
+Steam game metadata: lexwalker/steamguessr, Steam and SteamSpy.
+https://github.com/lexwalker/steamguessr
+Steam images remain the property of their respective owners.

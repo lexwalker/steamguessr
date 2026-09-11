@@ -1,4 +1,4 @@
-import { useEffect, useReducer, useState } from 'react';
+import { lazy, Suspense, useEffect, useReducer, useState } from 'react';
 import { loadGames } from './lib/data.js';
 import { randomSeed, todayKey } from './lib/rng.js';
 import { ensureDescs, fmt, t, useLang } from './lib/i18n.js';
@@ -12,6 +12,8 @@ import Profile from './components/Profile.jsx';
 import LangSwitch from './components/LangSwitch.jsx';
 import Toasts from './components/Toast.jsx';
 
+const FlyGame = lazy(() => import('./components/fly/FlyGame.jsx'));
+
 function screenFromUrl() {
   const p = new URLSearchParams(location.search);
   const mode = p.get('mode');
@@ -24,6 +26,7 @@ function screenFromUrl() {
   if (mode === 'daily') return { name: 'classic', daily: true, pool: dailyPool(today), seed: 'daily-' + today };
   if (mode === 'weekly') return { name: 'classic', weekly: true, pool: WEEKLY.pool, seed: 'weekly-' + weekKey(today) };
   if (mode === 'hilo') return { name: 'hilo', seed: p.get('seed') || randomSeed() };
+  if (mode === 'fly') return { name: 'fly', seed: p.get('seed') || randomSeed() };
   if (mode === 'mp') return { name: 'mp', lobby: (p.get('lobby') || '').toUpperCase() || null };
   if (mode === 'profile') return { name: 'profile' };
   return { name: 'home' };
@@ -34,6 +37,7 @@ function urlFor(s) {
   if (s.name === 'classic' && s.weekly) return '?mode=weekly';
   if (s.name === 'classic') return `?mode=classic&pool=${s.pool}&seed=${s.seed}`;
   if (s.name === 'hilo') return `?mode=hilo&seed=${s.seed}`;
+  if (s.name === 'fly') return `?mode=fly&seed=${encodeURIComponent(s.seed)}`;
   if (s.name === 'mp') return s.lobby ? `?mode=mp&lobby=${s.lobby}` : '?mode=mp';
   if (s.name === 'profile') return '?mode=profile';
   return location.pathname;
@@ -54,7 +58,7 @@ export default function App() {
   }, []);
 
   useEffect(() => {
-    if (screen.name === 'classic' && !screen.daily && !screen.weekly && location.search !== urlFor(screen)) history.replaceState(null, '', urlFor(screen));
+    if ((screen.name === 'fly' || (screen.name === 'classic' && !screen.daily && !screen.weekly)) && location.search !== urlFor(screen)) history.replaceState(null, '', urlFor(screen));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -97,6 +101,14 @@ export default function App() {
         onExit={() => go({ name: 'home' })}
         onReplay={() => go({ name: 'classic', pool: screen.pool, seed: randomSeed() })}
       />
+    );
+  } else if (screen.name === 'fly') {
+    body = (
+      <Suspense fallback={<div className="notice">{t('fly.loading')}</div>}>
+        <FlyGame key={screen.seed} data={data} seed={screen.seed}
+          onExit={() => go({ name: 'home' })}
+          onReplay={() => go({ name: 'fly', seed: randomSeed() })} />
+      </Suspense>
     );
   } else if (screen.name === 'hilo') {
     body = (

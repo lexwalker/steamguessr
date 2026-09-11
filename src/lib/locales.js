@@ -1,4 +1,5 @@
 import PROGRESS from './locales-progress.js';
+import FLY from './locales-fly.js';
 
 // Interface strings. Keys are flat; plural entries are objects keyed by CLDR category and use {n}.
 
@@ -1024,4 +1025,4 @@ const ko = {
 };
 
 const BASE = { en, ru, de, fr, es, pt, pl, tr, zh, ja, ko };
-export default Object.fromEntries(Object.entries(BASE).map(([code, dict]) => [code, { ...dict, ...(PROGRESS[code] || {}) }]));
+export default Object.fromEntries(Object.entries(BASE).map(([code, dict]) => [code, { ...dict, ...(PROGRESS[code] || {}), ...(FLY[code] || {}) }]));

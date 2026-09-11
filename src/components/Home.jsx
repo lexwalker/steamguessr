@@ -173,6 +173,14 @@ export default function Home({ data, onStart }) {
           </div>
         </section>
 
+        <section className="mode fly-mode-card">
+          <div className="mode-head"><span className="mode-icon" aria-hidden="true">🪰</span><h2>{t('fly.title')}</h2></div>
+          <p>{t('fly.description')}</p>
+          <div className="mode-actions">
+            <button className="btn primary" onClick={() => onStart({ name: 'fly', seed: randomSeed() })}>{t('fly.play')}</button>
+          </div>
+        </section>
+
         <section className="mode profile-card">
           <div className="mode-head"><span className="mode-icon"><IconUser /></span><h2>{t('home.profile')}</h2></div>
           <XpBar info={info} />
