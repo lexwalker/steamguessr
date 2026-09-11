@@ -9,8 +9,6 @@ CSV mirror: https://github.com/snedea/flybrain/tree/main/data
 Changes: left ALPN -> KC -> MBON pathway selection; contact aggregation and normalisation;
 fixed engineered input projection, rate activation and trained external ridge readout.
 Exact source revisions and SHA-256 digests are recorded in metrics.json.
-brain.bin / pathway.json: one representative coordinate per neuron from the same release
-(coordinates.csv, neurons.csv of the CSV mirror), quantized; used only for the activity view.
 
 Steam game metadata: lexwalker/steamguessr, Steam and SteamSpy.
 https://github.com/lexwalker/steamguessr

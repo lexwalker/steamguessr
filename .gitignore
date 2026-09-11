@@ -29,6 +29,3 @@ design/steamguessr-screens.html
 
 # atomic-write temp files of the dataset builder
 public/data/*.tmp
-
-# FlyWire tables downloaded by scripts/fly/brain.mjs
-scripts/fly/cache/

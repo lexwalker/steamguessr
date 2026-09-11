@@ -10,8 +10,6 @@ import GameCard from '../GameCard.jsx';
 import GuessSlider from '../GuessSlider.jsx';
 import { ScaleBar, Verdict } from '../RoundResult.jsx';
 import FlyScene from './FlyScene.jsx';
-import BrainView from './BrainView.jsx';
-import { WAVE_MS } from '../../lib/fly/constants.js';
 import './fly.css';
 
 function ModelDetails({ assets }) {
@@ -69,15 +67,6 @@ function Match({ data, assets, seed, onExit, onReplay }) {
   const game = games[round];
   const prediction = predictions[round];
   const result = phase === 'reveal' ? results.at(-1) : null;
-
-  // The answer is computed at once but shown after the signal has travelled through the brain view.
-  const [shown, setShown] = useState(() => (initial.phase === 'reveal' ? predictions[Math.max(0, initial.guesses.length - 1)] : null));
-  useEffect(() => {
-    if (result) { setShown(prediction); return undefined; }
-    setShown(null);
-    const id = setTimeout(() => setShown(prediction), WAVE_MS + 150);
-    return () => clearTimeout(id);
-  }, [game.id, result, prediction]);
 
   useEffect(() => {
     if (games.length === ROUNDS) writeFlyRun({ key, ids: games.map((g) => g.id), guesses, phase });
@@ -147,12 +136,11 @@ function Match({ data, assets, seed, onExit, onReplay }) {
   return <div className="game fly-game">
     <div className="topbar"><span className="crumb">{t('fly.title')}</span><div className="pips" aria-label={t('game.round', { i: round + 1, n: games.length })}>{games.map((g, i) => <span key={g.id} className={`pip${i < guesses.length ? ' done' : i === round ? ' current' : ''}`} />)}</div><span>{t('game.round', { i: round + 1, n: games.length })}</span><button className="link" onClick={onExit}>{t('game.exit')}</button></div>
     <div className="fly-stage">
-      <FlyScene key={'scene-' + getLang()} game={game} prediction={result ? prediction : shown} result={result} model={assets.model} />
-      <BrainView key={'brain-' + getLang()} prediction={prediction} model={assets.model} animate={!result} gameId={game.id} />
+      <FlyScene key={getLang()} game={game} prediction={prediction} result={result} model={assets.model} />
       <aside className="fly-duel">
         {board}
         <p className="fly-rules">{t('fly.rules')}</p>
-        <p className={'fly-ready' + (result ? ' done' : shown ? '' : ' thinking')}>🪰 {result ? t('fly.guessFormat', { n: fmt(result.fly.guess), p: result.fly.pct }) : shown ? t('fly.ready') : t('fly.thinking')}</p>
+        <p className={'fly-ready' + (result ? ' done' : '')}>🪰 {result ? t('fly.guessFormat', { n: fmt(result.fly.guess), p: result.fly.pct }) : t('fly.ready')}</p>
       </aside>
     </div>
     <GameCard key={game.id} game={game} revealed={phase === 'reveal'} startWith="image">

@@ -1,6 +1,4 @@
 const en = {
-  'fly.brainTitle': 'CNS / NEURAL ACTIVITY', 'fly.brainThinking': 'Signal travels through the circuit', 'fly.brainDone': 'Circuit settled', 'fly.thinking': 'The fly is thinking…',
-  'fly.brainCaption': '{n} FlyWire neurons · circuit of {c}', 'fly.brainActive': '{a} of {n} Kenyon cells fire', 'fly.brainFallback': '3D is unavailable in this browser; the activity raster in the fly panel still works.',
   'fly.share': 'Copy result', 'fly.roundsWon': 'rounds {a} : {b}', 'fly.brain': 'Kenyon cell activity', 'fly.screenNew': 'New game',
   'fly.title': 'Against the fly',
   'fly.description': 'Five games against a trained fly-brain model. It guesses at its own computer — can you get closer?',
@@ -32,8 +30,6 @@ const en = {
   'fly.screenTyping': 'Entering the answer…', 'fly.screenHidden': 'Revealed after your guess', 'fly.screenDone': 'DONE', 'fly.screenAnswer': 'ANSWER',
 };
 const ru = {
-  'fly.brainTitle': 'ЦНС / АКТИВНОСТЬ', 'fly.brainThinking': 'Сигнал идёт по контуру', 'fly.brainDone': 'Контур успокоился', 'fly.thinking': 'Муха думает…',
-  'fly.brainCaption': '{n} нейронов FlyWire · контур из {c}', 'fly.brainActive': 'активны {a} из {n} клеток Кеньона', 'fly.brainFallback': '3D недоступна в этом браузере; растр активности в панели мухи работает.',
   'fly.share': 'Скопировать результат', 'fly.roundsWon': 'раунды {a} : {b}', 'fly.brain': 'Активность клеток Кеньона', 'fly.screenNew': 'Новая игра',
   'fly.title': 'Против мухи',
   'fly.description': 'Пять игр против обученной модели мозга мухи. Она отгадывает за своим компьютером — попробуй оказаться точнее.',
